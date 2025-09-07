@@ -318,14 +318,16 @@
   <!-- Firebase SDKs (REAL DATA ONLY; no mock seed) -->
   <script type="module">
     // ======== FIREBASE BOOTSTRAP ========
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+   const firebaseConfig = {
+  apiKey: "AIzaSyAhA1s2iiJDMMeqoOrp1asJO1eha_R0ivg",
+  authDomain: "slychat1-b76db.firebaseapp.com",
+  databaseURL: "https://slychat1-b76db-default-rtdb.firebaseio.com",
+  projectId: "slychat1-b76db",
+  storageBucket: "slychat1-b76db.firebasestorage.app",
+  messagingSenderId: "508879069664",
+  appId: "1:508879069664:web:ce963d111297cd3480cb85",
+  measurementId: "G-D34XJNNGNQ"
+};
 
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, fetchSignInMethodsForEmail, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
@@ -691,3 +693,4 @@
   </script>
 </body>
 </html>
+
