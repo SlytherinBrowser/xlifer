@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registracija • Xlifer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="dark">
+  <header class="topbar">
+    <div class="brand">🌐 Xlifer</div>
+    <nav class="row" style="margin-left:auto;gap:6px">
+      <a class="btn" href="feed.html">Domov</a>
+      <a class="btn" href="profile.html">Profil</a>
+      <a class="btn" href="friends.html">Prijatelji</a>
+      <a class="btn" href="chat.html">Chat</a>
+      <select id="themeSelect" class="input" style="width:auto">
+        <option value="dark">Temna</option>
+        <option value="light">Svetla</option>
+        <option value="purple">Vijolična</option>
+        <option value="forest">Gozdna</option>
+      </select>
+      <button id="logoutBtn" class="btn danger">Odjava</button>
+    </nav>
+  </header>
+  <div class="container">
+
+  <div class="card">
+    <div class="tabs">
+      <a class="tab" href="login.html">Prijava</a>
+      <button class="tab active">Registracija</button>
+    </div>
+    <div class="grid2">
+      <input id="regName" class="input" placeholder="Ime in priimek" />
+      <input id="regEmail" class="input" placeholder="Email" />
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <input id="regPass" class="input" placeholder="Geslo" type="password" />
+      <input id="regPass2" class="input" placeholder="Ponovi geslo" type="password" />
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="regAvatar" type="file" accept="image/*" />
+      <small class="muted">Neobvezno: naloži fotografijo</small>
+    </div>
+    <button id="registerBtn" class="btn primary" style="margin-top:8px">Ustvari račun</button>
+  </div>
+
+  </div>
+  <footer>© 2025 Xlifer</footer>
+  <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="ui.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="page-register.js"></script>
+</body>
+</html>
