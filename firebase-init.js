@@ -8,7 +8,7 @@ export const firebaseConfig = {
   authDomain: "slychat1-b76db.firebaseapp.com",
   databaseURL: "https://slychat1-b76db-default-rtdb.firebaseio.com",
   projectId: "slychat1-b76db",
-  storageBucket: "slychat1-b76db.firebasestorage.app",
+  storageBucket: "slychat1-b76db.appspot.com"
   messagingSenderId: "508879069664",
   appId: "1:508879069664:web:ce963d111297cd3480cb85",
   measurementId: "G-D34XJNNGNQ"
