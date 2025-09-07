@@ -1,39 +1,744 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="sl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Xlifer — preusmeritev</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body data-theme="dark">
-  <header class="topbar">
-    <div class="brand">🌐 Xlifer</div>
-    <nav class="nav-actions">
-      <a class="btn" href="feed.html">Domov</a>
-      <a class="btn" href="profile.html">Profil</a>
-      <a class="btn" href="friends.html">Prijatelji</a>
-      <a class="btn" href="chat.html">Chat</a>
-      <select id="themeSelect" class="input" style="width:auto">
-        <option value="dark">Temna</option>
-        <option value="light">Svetla</option>
-        <option value="purple">Vijolična</option>
-        <option value="forest">Gozdna</option>
-      </select>
-      <button id="logoutBtn" class="btn danger">Odjava</button>
-    </nav>
-  </header>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mini Snapchat – prijatelji, chat in zemljevid</title>
 
-  <div class="container">
-    <div class="card">
-      <div class="section-title">Dobrodošel v Xlifer</div>
-      <p class="muted">Preusmerjam… Če ne gre, klikni <a href="login.html">prijava</a> ali <a href="register.html">registracija</a>.</p>
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="" crossorigin=""/>
+
+<style>
+  :root{
+    --dock-bg:#111827;        /* slate-900 */
+    --dock-fg:#e5e7eb;        /* gray-200 */
+    --accent:#22c55e;         /* green-500 */
+    --accent-2:#60a5fa;       /* blue-400 */
+    --danger:#ef4444;         /* red-500 */
+    --muted:#6b7280;          /* gray-500 */
+    --card:#1f2937;           /* slate-800 */
+    --input:#111827;          /* slate-900 */
+    --ring:#334155;           /* slate-700 */
+  }
+
+  *{box-sizing:border-box}
+  html, body {height:100%; margin:0; background:#0b1020; color:#e5e7eb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;}
+
+  /* App layout */
+  #app{position:fixed; inset:0; display:none;}
+  #map{position:absolute; inset:0;}
+  .emoji-label{
+    background: rgba(17,24,39,.9);
+    color:#e5e7eb;
+    padding:2px 6px;
+    border-radius:12px;
+    font-size:12px;
+    margin-top:2px;
+    text-align:center;
+    white-space:nowrap;
+  }
+
+  /* Dock */
+  #dock{
+    position:fixed; left:0; right:0; bottom:0;
+    background:var(--dock-bg); color:var(--dock-fg);
+    border-top:1px solid #1f2937;
+    transition:transform .25s ease, height .25s ease;
+    display:flex; flex-direction:column;
+    box-shadow:0 -10px 30px rgba(0,0,0,.35);
+    max-height:85vh;
+  }
+  #dock.shrunk{ height:72px; }
+  #dock.expanded{ height:auto; }
+
+  .dock-content{ padding:12px 14px 10px; overflow:auto; }
+  .dock-toolbar{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:10px;
+    align-items:center; padding:8px 12px;
+    border-top:1px solid #1f2937; background:#0f172a;
+  }
+  .dock-buttons{
+    display:flex; gap:10px; justify-content:space-around; padding:10px 12px;
+    border-top:1px solid #1f2937; background:#0f172a;
+  }
+  button, .btn{
+    appearance:none; border:1px solid #1f2937; background:#0b1222; color:#e5e7eb;
+    padding:10px 12px; border-radius:10px; font-weight:600; cursor:pointer;
+    transition:transform .05s ease, background .2s;
+  }
+  button:hover{ background:#111a2e }
+  button:active{ transform:translateY(1px) }
+  .btn-primary{ background:linear-gradient(180deg,#22c55e,#16a34a); border-color:#15803d; }
+  .btn-primary:hover{ filter:brightness(1.05) }
+  .btn-ghost{ background:transparent; border-color:#334155; }
+  .btn-danger{ background:linear-gradient(180deg,#ef4444,#dc2626); border-color:#b91c1c; }
+  .tag{ font-size:12px; padding:3px 8px; background:#0b1222; border:1px solid #1f2937; border-radius:999px; color:#9ca3af;}
+  input, select, textarea{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--ring);
+    background:var(--input); color:#e5e7eb; outline:none;
+  }
+  .row{ display:flex; gap:10px; align-items:center; }
+  .row > *{ flex:1 }
+
+  /* Lists / cards */
+  .list{ display:flex; flex-direction:column; gap:8px; }
+  .item{
+    background:var(--card); border:1px solid #273244; border-radius:12px; padding:10px 12px;
+    display:flex; align-items:center; gap:10px; justify-content:space-between;
+  }
+  .item .left{ display:flex; align-items:center; gap:10px;}
+  .avatar{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+    background:#0b1222; border:1px solid #273244; font-size:20px;
+  }
+  .muted{ color:#94a3b8; font-size:12px }
+
+  /* Chat */
+  .chat-header{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;
+  }
+  .chat-box{
+    background:var(--card); border:1px solid #273244; border-radius:12px; padding:10px; height:40vh; overflow:auto;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .msg{ max-width:80%; padding:8px 10px; border-radius:12px; }
+  .me{ align-self:flex-end; background:#1c3a2b; }
+  .them{ align-self:flex-start; background:#13213c; }
+  .msg .time{ font-size:10px; color:#94a3b8; margin-top:2px; }
+
+  /* Auth page */
+  #auth{ position:fixed; inset:0; display:grid; place-items:center; padding:20px; }
+  .panel{
+    width:min(560px, 96vw);
+    background:#0b1222; border:1px solid #1f2937; border-radius:16px; padding:20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .panel h1{ margin:0 0 10px 0; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .divider{ height:1px; background:#1f2937; margin:14px 0; }
+
+  /* Toast */
+  #toast{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:92px; background:#0b1222; border:1px solid #273244; border-radius:12px;
+    padding:10px 14px; display:none; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+
+  /* Helpers */
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<section id="auth">
+  <div class="panel">
+    <h1>Prijava</h1>
+    <div class="grid-2">
+      <div>
+        <label>E-pošta</label>
+        <input id="loginEmail" type="email" placeholder="ime@domena.si" />
+      </div>
+      <div>
+        <label>Geslo</label>
+        <input id="loginPass" type="password" placeholder="••••••••" />
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button id="btnLogin" class="btn-primary">Prijavi me</button>
+      <button id="btnAnon" class="btn-ghost" title="Za hiter preizkus (brez prijateljev)">Gost (demo)</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <h1>Registracija</h1>
+    <div class="grid-2">
+      <div><label>Ime</label><input id="regName" placeholder="Tvoje ime" /></div>
+      <div><label>Rojstni datum</label><input id="regDob" type="date" /></div>
+      <div><label>E-pošta</label><input id="regEmail" type="email" placeholder="ime@domena.si" /></div>
+      <div><label>Geslo</label><input id="regPass" type="password" placeholder="vsaj 6 znakov" /></div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button id="btnRegister" class="btn-primary">Ustvari račun</button>
     </div>
   </div>
-  <footer>© 2025 Xlifer</footer>
-  <script type="module" src="firebase-init.js"></script>
-  <script type="module" src="ui.js"></script>
-  <script type="module" src="auth-guard.js"></script>
-  <script type="module" src="page-index.js"></script>
+</section>
+
+<!-- APP -->
+<section id="app">
+  <div id="map"></div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Dock -->
+  <div id="dock" class="shrunk">
+    <!-- Dynamic content -->
+    <div id="dockContent" class="dock-content hidden"></div>
+
+    <!-- Search toolbar (only for Search tab) -->
+    <div id="searchToolbar" class="dock-toolbar hidden">
+      <button id="btnCloseSearch" class="btn-ghost">Zapri</button>
+      <input id="searchInput" placeholder="Išči uporabnike po imenu ali e-pošti…" />
+      <button id="btnWhoAddedMe" class="btn-ghost">Kdo me je dodal</button>
+    </div>
+
+    <!-- Chat composer (only in chat) -->
+    <div id="chatComposer" class="dock-toolbar hidden">
+      <input id="chatInput" placeholder="Napiši sporočilo…" />
+      <button id="btnSend" class="btn-primary">Pošlji</button>
+    </div>
+
+    <!-- Base buttons -->
+    <div class="dock-buttons">
+      <button id="btnFriends">👥 Prijatelji</button>
+      <button id="btnSearch">🔎 Iskanje</button>
+      <button id="btnProfile">👤 Moj profil</button>
+    </div>
+  </div>
+</section>
+
+<!-- Firebase (compat for simplicity) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="" crossorigin=""></script>
+
+<script>
+/* =========================
+   Firebase INIT
+   ========================= */
+// TODO: PASTE YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "PASTE_ME",
+  authDomain: "PASTE_ME.firebaseapp.com",
+  projectId: "PASTE_ME",
+  storageBucket: "PASTE_ME.appspot.com",
+  messagingSenderId: "PASTE_ME",
+  appId: "PASTE_ME"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* =========================
+   Global app state
+   ========================= */
+const state = {
+  me: null,                // {uid, name, dob, bio, score, emoji, loc:{lat,lng}}
+  currentView: null,       // 'friends' | 'chat' | 'profile' | 'search' | 'profileView'
+  currentChat: null,       // friend UID
+  unsub: { friends:null, chat:null, inbox:null, map:null },
+  map: null,
+  markers: new Map(),      // uid -> {marker, label}
+  dockExpanded: false
+};
+
+/* =========================
+   Helpers
+   ========================= */
+const $ = sel => document.querySelector(sel);
+const el = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.className=cls; if(html!==undefined) n.innerHTML=html; return n; };
+function setDock(expand){
+  state.dockExpanded = expand;
+  $('#dock').classList.toggle('shrunk', !expand);
+  $('#dockContent').classList.toggle('hidden', !expand);
+  if(!expand){
+    // hide context toolbars by default when shrinking
+    $('#searchToolbar').classList.add('hidden');
+    $('#chatComposer').classList.add('hidden');
+  }
+}
+function toast(msg, timeout=3500){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.style.display='block';
+  setTimeout(()=> t.style.display='none', timeout);
+}
+function ageFromDob(dobStr){
+  if(!dobStr) return '';
+  const d = new Date(dobStr);
+  const diff = Date.now()-d.getTime();
+  return Math.floor(diff/31557600000);
+}
+function formatTime(ts){
+  const d = ts instanceof Date ? ts : ts?.toDate?.() ?? new Date();
+  return d.toLocaleString();
+}
+
+/* =========================
+   MAP (Leaflet + emoji markers)
+   ========================= */
+function initMap(){
+  state.map = L.map('map', { zoomControl:false }).setView([46.0569,14.5058], 12); // Ljubljana default
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19, attribution:'© OpenStreetMap'
+  }).addTo(state.map);
+
+  // locate me (browser)
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      updateMyLocation(pos.coords.latitude, pos.coords.longitude);
+    });
+  }
+
+  // live friends locations
+  if(state.unsub.map) state.unsub.map();
+  state.unsub.map = db.collection('users').onSnapshot(snap=>{
+    snap.docs.forEach(doc=>{
+      const u = { uid: doc.id, ...doc.data() };
+      placeOrUpdateMarker(u);
+    });
+  });
+}
+
+function emojiDivIcon(emoji='👤', name=''){
+  const html = `
+    <div style="display:flex;flex-direction:column;align-items:center;transform:translateY(-8px);">
+      <div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));">${emoji}</div>
+      <div class="emoji-label">${name||''}</div>
+    </div>`;
+  return L.divIcon({ html, className:'', iconSize:[40,40], iconAnchor:[20,34] });
+}
+function placeOrUpdateMarker(user){
+  const { uid, name, emoji='🧭', loc } = user;
+  if(!loc || loc.lat==null || loc.lng==null) return;
+
+  const exists = state.markers.get(uid);
+  if(exists){
+    exists.marker.setLatLng([loc.lat, loc.lng]);
+    exists.marker.setIcon(emojiDivIcon(emoji, name||''));
+  }else{
+    const marker = L.marker([loc.lat, loc.lng], { icon: emojiDivIcon(emoji, name||'') }).addTo(state.map);
+    marker.on('click', ()=> openProfileView(uid));
+    state.markers.set(uid, { marker });
+  }
+}
+async function updateMyLocation(lat, lng){
+  if(!auth.currentUser) return;
+  await db.collection('users').doc(auth.currentUser.uid).set({ loc:{lat,lng} }, { merge:true });
+}
+
+/* =========================
+   AUTH flows
+   ========================= */
+$('#btnAnon').onclick = async ()=>{
+  await auth.signInAnonymously();
+};
+$('#btnLogin').onclick = async ()=>{
+  const email = $('#loginEmail').value.trim();
+  const pass  = $('#loginPass').value;
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){ alert(e.message); }
+};
+$('#btnRegister').onclick = async ()=>{
+  const name = $('#regName').value.trim();
+  const dob  = $('#regDob').value;
+  const email= $('#regEmail').value.trim();
+  const pass = $('#regPass').value;
+  if(!name || !dob || !email || !pass){ alert('Izpolni vsa polja.'); return; }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    // create user doc
+    await db.collection('users').doc(cred.user.uid).set({
+      name, dob, email, score:0, bio:'', emoji:'🙂',
+      loc: null, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){ alert(e.message); }
+};
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    $('#auth').style.display='grid';
+    $('#app').style.display='none';
+    return;
+  }
+  $('#auth').style.display='none';
+  $('#app').style.display='block';
+
+  // Ensure user doc exists
+  const meDoc = await db.collection('users').doc(user.uid).get();
+  if(!meDoc.exists){
+    await db.collection('users').doc(user.uid).set({
+      name:'Uporabnik', dob:'', email:user.email||'', score:0, bio:'', emoji:'🙂', loc:null
+    });
+  }
+  const me = (await db.collection('users').doc(user.uid).get()).data();
+  state.me = { uid:user.uid, ...me };
+
+  initMap();
+  wireInboxNotifications();
+  // default: shrunk dock with buttons
+  setDock(false);
+});
+
+/* =========================
+   Dock buttons
+   ========================= */
+$('#btnFriends').onclick = ()=>{
+  if(state.currentView==='friends' && state.dockExpanded){
+    // toggle collapse
+    setDock(false);
+    state.currentView=null;
+  }else{
+    openFriends();
+  }
+};
+$('#btnSearch').onclick = ()=>{
+  if(state.currentView==='search' && state.dockExpanded){
+    // toggle collapse like spec: “ko klikneš gor… skrijejo gumbi na levi se pokaže zapri”
+    setDock(false);
+    state.currentView=null;
+  }else{
+    openSearch();
+  }
+};
+$('#btnProfile').onclick = ()=>{
+  if(state.currentView==='profile' && state.dockExpanded){
+    setDock(false);
+    state.currentView=null;
+  }else{
+    openMyProfile();
+  }
+};
+
+/* =========================
+   Friends list & Chat
+   ========================= */
+async function openFriends(){
+  state.currentView='friends';
+  setDock(true);
+  $('#chatComposer').classList.add('hidden');
+  $('#searchToolbar').classList.add('hidden');
+
+  const wrap = $('#dockContent');
+  wrap.innerHTML = `<h3 style="margin:4px 2px 8px;">Prijatelji</h3>
+    <div id="friendsList" class="list"></div>`;
+
+  if(state.unsub.friends) state.unsub.friends();
+  state.unsub.friends = db.collection('users').doc(auth.currentUser.uid)
+    .collection('friends').onSnapshot(async snap=>{
+      const elList = $('#friendsList'); elList.innerHTML='';
+      if(snap.empty){
+        elList.append(el('div','muted','Še nimaš prijateljev. Pojdi na Iskanje 🔎 in dodaj koga.'));
+        return;
+      }
+      for(const doc of snap.docs){
+        const fuid = doc.id;
+        const f = (await db.collection('users').doc(fuid).get()).data();
+        const item = el('div','item');
+        const left = el('div','left',`
+          <div class="avatar">${f?.emoji||'👤'}</div>
+          <div>
+            <div><strong>${f?.name||'Uporabnik'}</strong></div>
+            <div class="muted">${f?.bio||''}</div>
+          </div>
+        `);
+        const btns = el('div');
+        const b1 = el('button','', 'Pogovor');
+        b1.onclick = ()=> openChat(fuid);
+        const b2 = el('button','btn-ghost', 'Profil');
+        b2.onclick = ()=> openProfileView(fuid);
+        btns.append(b1,b2);
+        item.append(left, btns);
+        elList.append(item);
+      }
+    });
+}
+
+function chatIdFor(a,b){ return [a,b].sort().join('__'); }
+
+async function openChat(friendUid){
+  state.currentView='chat';
+  state.currentChat = friendUid;
+  setDock(true);
+  $('#searchToolbar').classList.add('hidden');
+  $('#chatComposer').classList.remove('hidden');
+
+  // Header + messages list
+  const friend = (await db.collection('users').doc(friendUid).get()).data();
+  const wrap = $('#dockContent');
+  wrap.innerHTML = `
+    <div class="chat-header">
+      <button class="btn-ghost" id="btnBackToFriends">← Nazaj</button>
+      <div style="flex:1;text-align:center; cursor:pointer;" id="chatTitle"><strong>${friend?.name||'Uporabnik'}</strong></div>
+      <span class="tag">Chat</span>
+    </div>
+    <div id="msgList" class="chat-box"></div>
+  `;
+
+  $('#btnBackToFriends').onclick = openFriends;
+  $('#chatTitle').onclick = ()=> openProfileView(friendUid);
+
+  // Live messages
+  const cid = chatIdFor(auth.currentUser.uid, friendUid);
+  if(state.unsub.chat) state.unsub.chat();
+  state.unsub.chat = db.collection('chats').doc(cid).collection('messages')
+    .orderBy('createdAt','asc')
+    .onSnapshot(snap=>{
+      const list = $('#msgList'); list.innerHTML='';
+      snap.docs.forEach(d=>{
+        const m = d.data();
+        const bubble = el('div', 'msg ' + (m.from===auth.currentUser.uid?'me':'them'));
+        bubble.innerHTML = `<div>${m.text||''}</div><div class="time">${formatTime(m.createdAt)}</div>`;
+        list.append(bubble);
+      });
+      list.scrollTop = list.scrollHeight;
+    });
+}
+
+$('#btnSend').onclick = async ()=>{
+  const text = $('#chatInput').value.trim();
+  if(!text || !state.currentChat) return;
+  $('#chatInput').value = '';
+  const cid = chatIdFor(auth.currentUser.uid, state.currentChat);
+  await db.collection('chats').doc(cid).collection('messages').add({
+    from: auth.currentUser.uid,
+    to: state.currentChat,
+    text,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  // notify recipient (for toast logic)
+  await db.collection('inbox').add({
+    type:'message', from:auth.currentUser.uid, to: state.currentChat,
+    text, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+};
+
+/* Inbox live notifications for “dock minimized / not in chat” */
+function wireInboxNotifications(){
+  if(state.unsub.inbox) state.unsub.inbox();
+  state.unsub.inbox = db.collection('inbox')
+    .where('to','==',auth.currentUser.uid)
+    .orderBy('createdAt','desc').limit(1)
+    .onSnapshot(async snap=>{
+      if(snap.empty) return;
+      const it = snap.docs[0].data();
+      // show toast only if not already inside the relevant view
+      if(it.type==='message' && !(state.currentView==='chat' && state.currentChat===it.from)){
+        const u = (await db.collection('users').doc(it.from).get()).data();
+        toast(`${u?.name||'Nekdo'} ti je poslal sporočilo`);
+      }
+      if(it.type==='friend_request'){
+        const u = (await db.collection('users').doc(it.from).get()).data();
+        toast(`${u?.name||'Nekdo'} te je dodal`);
+      }
+    });
+}
+
+/* =========================
+   Profile (mine)
+   ========================= */
+async function openMyProfile(){
+  state.currentView='profile';
+  setDock(true);
+  $('#searchToolbar').classList.add('hidden');
+  $('#chatComposer').classList.add('hidden');
+
+  const me = (await db.collection('users').doc(auth.currentUser.uid).get()).data();
+  const wrap = $('#dockContent');
+  wrap.innerHTML = `
+    <h3 style="margin:4px 2px 8px;">Moj profil</h3>
+    <div class="list">
+      <div class="item">
+        <div class="left"><div class="avatar">${me?.emoji||'🙂'}</div><div><strong>Ime</strong><div class="muted">Kako naj te prikazuje</div></div></div>
+        <div style="flex:1; max-width:50%"><input id="meName" value="${me?.name||''}"/></div>
+      </div>
+      <div class="item">
+        <div class="left"><div class="avatar">📝</div><div><strong>Opis</strong><div class="muted">Kratek bio</div></div></div>
+        <div style="flex:1; max-width:60%"><input id="meBio" value="${me?.bio||''}" /></div>
+      </div>
+      <div class="item">
+        <div class="left"><div class="avatar">🎭</div><div><strong>Emoji</strong><div class="muted">Za marker na zemljevidu</div></div></div>
+        <div style="flex:1; max-width:40%"><input id="meEmoji" value="${me?.emoji||'🙂'}" /></div>
+      </div>
+      <div class="item">
+        <div class="left"><div class="avatar">🎯</div><div><strong>Score</strong><div class="muted">Samodejno (demo)</div></div></div>
+        <span class="tag">${me?.score ?? 0}</span>
+      </div>
+      <div class="row">
+        <button id="btnSaveMe" class="btn-primary">Shrani</button>
+        <button id="btnSetLoc" class="btn-ghost">Osveži mojo lokacijo</button>
+        <button id="btnLogout" class="btn-danger">Odjava</button>
+      </div>
+    </div>
+  `;
+  $('#btnSaveMe').onclick = async ()=>{
+    const name = $('#meName').value.trim();
+    const bio  = $('#meBio').value.trim();
+    const emoji= $('#meEmoji').value.trim() || '🙂';
+    await db.collection('users').doc(auth.currentUser.uid).set({ name, bio, emoji }, { merge:true });
+    toast('Profil shranjen');
+    // update map marker immediately
+    const u = (await db.collection('users').doc(auth.currentUser.uid).get()).data();
+    placeOrUpdateMarker({ uid:auth.currentUser.uid, ...u });
+  };
+  $('#btnSetLoc').onclick = ()=>{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(p=>{
+        updateMyLocation(p.coords.latitude, p.coords.longitude);
+        toast('Lokacija posodobljena');
+      });
+    }
+  };
+  $('#btnLogout').onclick = ()=> auth.signOut();
+}
+
+/* =========================
+   Profile (view other)
+   ========================= */
+async function openProfileView(uid){
+  state.currentView='profileView';
+  setDock(true);
+  $('#chatComposer').classList.add('hidden');
+  $('#searchToolbar').classList.add('hidden');
+
+  const udoc = await db.collection('users').doc(uid).get();
+  const u = udoc.data();
+  const isFriend = (await db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(uid).get()).exists;
+
+  const wrap = $('#dockContent');
+  wrap.innerHTML = `
+    <div class="chat-header">
+      <button class="btn-ghost" id="btnBackGeneric">← Nazaj</button>
+      <div style="flex:1;text-align:center;"><strong>${u?.name||'Uporabnik'}</strong></div>
+      <span class="tag">Profil</span>
+    </div>
+    <div class="list">
+      <div class="item">
+        <div class="left"><div class="avatar" style="font-size:34px">${u?.emoji||'👤'}</div>
+          <div>
+            <div><strong>${u?.name||''}</strong></div>
+            <div class="muted">Starost: ${ageFromDob(u?.dob)} • Score: ${u?.score ?? 0}</div>
+          </div>
+        </div>
+        <div class="muted">${u?.dob||''}</div>
+      </div>
+      <div class="item"><div>${u?.bio||'— brez opisa —'}</div></div>
+      <div class="row">
+        <button id="btnOpenChat" class="btn-ghost">Odpri chat</button>
+        ${isFriend ? '' : '<button id="btnAddFriend" class="btn-primary">Dodaj</button>'}
+      </div>
+    </div>
+  `;
+  $('#btnBackGeneric').onclick = ()=>{
+    // smart back: if came from chat keep chat
+    if(state.currentChat===uid) openChat(uid); else openFriends();
+  };
+  $('#btnOpenChat').onclick = ()=> openChat(uid);
+  const addBtn = $('#btnAddFriend');
+  if(addBtn) addBtn.onclick = async ()=>{
+    // create request for other user
+    await db.collection('friend_requests').add({
+      from: auth.currentUser.uid, to: uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // push inbox notification
+    await db.collection('inbox').add({
+      type:'friend_request', from: auth.currentUser.uid, to: uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('Prošnja poslana');
+  };
+}
+
+/* =========================
+   Search + “kdo me je dodal”
+   ========================= */
+function openSearch(){
+  state.currentView='search';
+  setDock(true);
+
+  // hide chat composer, show search toolbar
+  $('#chatComposer').classList.add('hidden');
+  $('#searchToolbar').classList.remove('hidden');
+
+  const wrap = $('#dockContent');
+  wrap.innerHTML = `<div id="searchResults" class="list"></div>`;
+
+  $('#btnCloseSearch').onclick = ()=> { setDock(false); state.currentView=null; };
+  $('#btnWhoAddedMe').onclick = loadWhoAddedMe;
+  $('#searchInput').oninput = debounce(doSearch, 250);
+}
+
+async function doSearch(){
+  const q = $('#searchInput').value.trim().toLowerCase();
+  const out = $('#searchResults'); out.innerHTML='';
+  if(q.length<2){ out.append(el('div','muted','Vpiši vsaj 2 znaka.')); return; }
+
+  // naive search demo: fetch 20 users and filter client-side (better: Firestore indexes)
+  const snap = await db.collection('users').limit(20).get();
+  const results = snap.docs
+    .map(d=>({ uid:d.id, ...d.data() }))
+    .filter(u=>{
+      return (u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+    });
+
+  if(results.length===0){ out.append(el('div','muted','Ni najdenih uporabnikov.')); return; }
+
+  for(const u of results){
+    if(u.uid===auth.currentUser.uid) continue;
+    const row = el('div','item');
+    row.innerHTML = `
+      <div class="left">
+        <div class="avatar">${u.emoji||'👤'}</div>
+        <div><div><strong>${u.name||''}</strong></div><div class="muted">${u.email||''}</div></div>
+      </div>
+      <div>
+        <button class="btn-ghost">Profil</button>
+      </div>
+    `;
+    row.querySelector('button').onclick = ()=> openProfileView(u.uid);
+    out.append(row);
+  }
+}
+
+async function loadWhoAddedMe(){
+  const out = $('#searchResults'); out.innerHTML = '<div class="muted">Nalagam…</div>';
+  const snap = await db.collection('friend_requests').where('to','==',auth.currentUser.uid).get();
+  out.innerHTML='';
+  if(snap.empty){ out.append(el('div','muted','Trenutno te nihče ni dodal.')); return; }
+  for(const d of snap.docs){
+    const fr = d.data();
+    const u = (await db.collection('users').doc(fr.from).get()).data();
+    const row = el('div','item');
+    row.innerHTML = `
+      <div class="left">
+        <div class="avatar">${u?.emoji||'👤'}</div>
+        <div><div><strong>${u?.name||'Uporabnik'}</strong></div><div class="muted">${u?.email||''}</div></div>
+      </div>
+      <div class="row" style="gap:6px; flex:unset">
+        <button class="btn-primary">Sprejmi</button>
+        <button class="btn-ghost">Zavrni</button>
+      </div>
+    `;
+    const [btnAccept, btnDecline] = row.querySelectorAll('button');
+    btnAccept.onclick = async ()=>{
+      // create friendship both ways
+      const meF = db.collection('users').doc(auth.currentUser.uid).collection('friends').doc(fr.from).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
+      const heF = db.collection('users').doc(fr.from).collection('friends').doc(auth.currentUser.uid).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
+      await Promise.all([meF, heF]);
+      await db.collection('friend_requests').doc(d.id).delete();
+      toast('Dodano med prijatelje');
+      doSearch(); // refresh list
+    };
+    btnDecline.onclick = async ()=>{
+      await db.collection('friend_requests').doc(d.id).delete();
+      toast('Prošnja zavrnjena');
+      doSearch();
+    };
+    out.append(row);
+  }
+}
+
+/* =========================
+   Utilities
+   ========================= */
+function debounce(fn,ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args),ms);} }
+</script>
+
 </body>
 </html>
