@@ -1,696 +1,621 @@
 <!DOCTYPE html>
-<html lang="sl" data-theme="breeze">
+<html lang="sl">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>xlifer — social</title>
+  <title>Xlifer — družabno omrežje (Firebase, 1 datoteka)</title>
   <style>
-    :root{ --radius:16px; --elev:0 10px 30px rgba(0,0,0,.12); --speed:180ms; --ring-1:#60a5fa; --ring-2:#a78bfa }
-    /* THEMES */
-    html[data-theme="breeze"]{--bg:#F7F8FA;--text:#0F172A;--card:#FFFFFF;--border:#E5E7EB;--primary:#2563EB;--accent:#22C55E;--ring-1:#60a5fa;--ring-2:#a78bfa}
-    html[data-theme="midnight"]{--bg:#0B1020;--text:#E5E7EB;--card:#141A2A;--border:#1F2937;--primary:#60A5FA;--accent:#34D399;--ring-1:#22d3ee;--ring-2:#a78bfa}
-    html[data-theme="obsidian"]{--bg:#000;--text:#E6E6E6;--card:#0A0A0A;--border:#1A1A1A;--primary:#4F46E5;--accent:#10B981;--ring-1:#3b82f6;--ring-2:#ec4899}
-    html[data-theme="sunset"]{--bg:#1B0E0A;--text:#FDEAD7;--card:#2A1711;--border:#3A241C;--primary:#FB923C;--accent:#F59E0B;--ring-1:#fb923c;--ring-2:#f472b6}
+    :root{
+      --bg: #0b0f14; --card:#111824; --text:#e8eef6; --muted:#a7b1c2; --primary:#6ea8fe; --accent:#22c55e; --danger:#ef4444; --border:#1f2a3a;
+    }
+    [data-theme="light"]{ --bg:#f6f8fb; --card:#ffffff; --text:#0c1220; --muted:#4b5563; --primary:#2563eb; --accent:#16a34a; --danger:#dc2626; --border:#e5e7eb; }
+    [data-theme="purple"]{ --bg:#0d0a1a; --card:#1a1233; --text:#f3e8ff; --muted:#c4b5fd; --primary:#8b5cf6; --accent:#22d3ee; --danger:#fb7185; --border:#2a1f4a; }
+    [data-theme="forest"]{ --bg:#0c1310; --card:#101b16; --text:#e6f4ea; --muted:#9fb3a7; --primary:#34d399; --accent:#60a5fa; --danger:#f87171; --border:#1a2a22; }
 
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
     a{color:var(--primary);text-decoration:none}
-    button{cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);padding:.7rem 1rem;border-radius:12px;transition:transform var(--speed),background var(--speed),opacity var(--speed)}
-    button.primary{background:var(--primary);color:#fff;border-color:transparent}
-    button.ghost{background:transparent}
-    input,textarea,select{width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text)}
-    .row{display:flex;gap:10px;align-items:center}
-    .stack{display:flex;flex-direction:column;gap:10px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--elev)}
-    .hide{display:none !important}
+    input,select,textarea,button{background:#0b0f14;color:var(--text)}
+    .container{display:grid;grid-template-columns:280px 1fr 360px;gap:16px;max-width:1400px;margin:0 auto;padding:16px}
+    header.topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:10}
+    header .brand{font-weight:800;letter-spacing:.3px}
+    .btn{border:1px solid var(--border);background:var(--card);padding:8px 12px;border-radius:12px;cursor:pointer}
+    .btn.primary{background:var(--primary);color:white;border-color:transparent}
+    .btn.ghost{background:transparent}
+    .btn.danger{background:var(--danger);color:white;border-color:transparent}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .stack{display:flex;gap:10px;align-items:center}
+    .stack-col{display:flex;flex-direction:column;gap:10px}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .input{width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent}
+    .avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .feed-img,.story-img{width:100%;border-radius:12px;border:1px solid var(--border)}
+    .story-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+    .story{min-width:120px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    nav.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:12px}
+    nav.tabs button{border:none;background:transparent;padding:10px 12px;border-bottom:2px solid transparent;cursor:pointer;color:var(--muted)}
+    nav.tabs button.active{color:var(--text);border-color:var(--primary)}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;background:#0c1220;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+    .pill{border:1px solid var(--border);border-radius:999px;padding:2px 8px}
+    .notice{padding:8px 10px;border-left:3px solid var(--primary);background:rgba(0,0,0,.2);border-radius:8px}
+    .row{display:flex;align-items:center;gap:10px}
 
-    /* Shell */
-    header.appbar{position:sticky;top:0;z-index:5;background:var(--bg);backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;gap:10px}
-    header.appbar h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
-    header.appbar .spacer{flex:1}
-
-    main#app{max-width:900px;margin:0 auto;padding:14px}
-
-    /* Auth view */
-    #authView{min-height:100vh;display:grid;place-items:center;padding:20px}
-    .auth-box{width:min(480px,96vw)}
-    .auth-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-    .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--ring-1),var(--ring-2));}
-
-    .hint{font-size:12px;opacity:.7}
-    .divider{height:1px;background:var(--border);margin:14px 0}
-
-    /* Stories */
-    .stories{display:flex;gap:12px;overflow:auto;padding:8px 4px}
-    .story{width:70px}
-    .story .circle{width:64px;height:64px;border-radius:50%;background:conic-gradient(from 0deg, var(--ring-1), var(--ring-2));padding:3px}
-    .story .inner{width:100%;height:100%;border-radius:50%;background:var(--bg);display:grid;place-items:center;overflow:hidden}
-    .story img{width:100%;height:100%;object-fit:cover}
-    .story .name{font-size:12px;text-align:center;margin-top:6px;opacity:.8}
-
-    /* Feed */
-    .feed{display:grid;gap:12px}
-    .post{padding:10px}
-    .post .head{display:flex;gap:10px;align-items:center}
-    .avatar{width:38px;height:38px;border-radius:50%;background:#bbb;overflow:hidden}
-    .avatar img{width:100%;height:100%;object-fit:cover}
-    .post .meta{font-size:12px;opacity:.7}
-    .media{margin-top:10px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
-    .media img{width:100%;display:block}
-    .actions{display:flex;gap:10px;margin-top:8px}
-
-    /* Bottom Dock */
-    .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;width:70%;min-width:320px;max-width:900px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--elev);z-index:20;display:flex;flex-direction:column}
-    .dock.collapsed{height:5px;overflow:hidden}
-    .dock .handle{height:10px;display:grid;place-items:center}
-    .dock .handle span{width:60px;height:4px;border-radius:4px;background:var(--border)}
-    .dock .content{max-height:0;overflow:auto;transition:max-height var(--speed)}
-    .dock.expanded .content{max-height:80vh;padding:10px}
-    .dock .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-top:1px solid var(--border)}
-    .dock .bar button{flex:1}
-
-    /* Dock panels */
-    .panel{display:none}
-    .panel.active{display:block}
-
-    /* Chat list */
-    .list{display:flex;flex-direction:column;gap:8px}
-    .item{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
-    .item .name{font-weight:600}
-
-    /* Chat window */
-    .chat{display:flex;flex-direction:column;height:60vh}
-    .chat .messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
-    .bubble{max-width:75%;padding:8px 10px;border-radius:14px;border:1px solid var(--border);background:var(--card)}
-    .bubble.me{align-self:flex-end;background:var(--primary);border-color:transparent;color:#fff}
-    .chat .composer{display:flex;gap:8px;margin-top:8px}
-    .chat .composer input{flex:1}
-
-    /* Toast */
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:var(--card);border:1px solid var(--border);padding:.6rem 1rem;border-radius:14px;box-shadow:var(--elev);opacity:0;pointer-events:none;transition:opacity var(--speed),transform var(--speed);z-index:50}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
-
-    /* Settings */
-    .themes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .swatch{border-radius:14px;padding:10px;border:1px solid var(--border);display:grid;gap:8px}
-    .swatch .colors{display:flex;gap:6px}
-    .dot{width:18px;height:18px;border-radius:50%}
-
-    /* Responsive */
-    @media (max-width:520px){ .dock{width:92%} header.appbar h1{font-size:16px} }
-    /* Story Viewer Overlay */
-    .story-viewer{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;z-index:60;color:#fff}
-    .story-viewer.active{display:grid;place-items:center}
-    .story-frame{width:min(420px,96vw);background:#000;border-radius:16px;overflow:hidden;border:1px solid #333}
-    .story-header{display:flex;align-items:center;gap:8px;padding:8px 10px;color:#fff}
-    .story-header .avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#111}
-    .story-media{height:min(72vh,720px);display:grid;place-items:center;background:#000}
-    .story-media img{max-width:100%;max-height:100%;display:block}
-    .story-nav{position:absolute;inset:0;display:flex}
-    .story-nav div{flex:1}
-    .story-nav div:first-child{cursor:w-resize}
-    .story-nav div:last-child{cursor:e-resize}
+    @media(max-width:1100px){ .container{grid-template-columns: 1fr;}
+      aside.left, aside.right{order:2}
+      main{order:1}
+    }
   </style>
 </head>
-<body>
-  <!-- AUTH VIEW -->
-  <section id="authView">
-    <div class="auth-box card" style="padding:16px">
-      <div class="auth-head">
-        <div class="logo"></div>
-        <div>
-          <div style="font-weight:800;font-size:18px">xlifer</div>
-          <div class="hint">Prijava ali registracija</div>
-        </div>
-      </div>
-
-      <div id="loginStepEmail" class="stack">
-        <label for="loginEmail">E-mail</label>
-        <input id="loginEmail" type="email" placeholder="tvoj@email.si" autocomplete="username" />
-        <div class="row">
-          <button id="btnCheckEmail" class="primary" title="Prijava">Prijava</button>
-          <button id="btnStartRegister">Registracija</button>
-          <button id="btnForgot" class="ghost">Pozabil/-a sem geslo</button>
-        </div>
-        <div class="hint" id="emailStatus"></div>
-      </div>
-
-      <div id="loginStepPassword" class="stack hide">
-        <label for="loginPassword">Geslo</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-        <div class="row">
-          <button id="btnDoLogin" class="primary">Prijava</button>
-          <button id="btnBackToEmail" class="ghost">Nazaj</button>
-        </div>
-        <div class="hint" id="passStatus"></div>
-      </div>
-
-      <div id="registerBox" class="stack hide">
-        <div style="font-weight:700">Ustvari račun</div>
-        <label>Ime</label>
-        <input id="regName" placeholder="Tvoje ime" />
-        <label>Profilna slika (jpeg/png)</label>
-        <input id="regPhoto" type="file" accept="image/*" />
-        <label>E-mail</label>
-        <input id="regEmail" type="email" placeholder="tvoj@email.si" autocomplete="email" />
-        <label>Geslo</label>
-        <input id="regPass1" type="password" autocomplete="new-password" />
-        <label>Ponovi geslo</label>
-        <input id="regPass2" type="password" autocomplete="new-password" />
-        <div class="row">
-          <button id="btnDoRegister" class="primary">Ustvari</button>
-          <button id="btnCancelRegister" class="ghost">Prekliči</button>
-        </div>
-        <div class="hint" id="regStatus"></div>
-      </div>
+<body data-theme="dark">
+  <header class="topbar">
+    <div class="brand">🌐 Xlifer</div>
+    <div class="stack" id="authBar">
+      <span class="muted">Ni prijave</span>
+      <button class="btn primary" onclick="showView('auth')">Prijava / Registracija</button>
     </div>
-  </section>
-
-  <!-- APP VIEW -->
-  <header class="appbar hide" id="appbar">
-    <h1>xlifer</h1>
-    <div class="spacer"></div>
-    <div id="whoami" class="hint"></div>
+    <div class="stack hidden" id="userBar">
+      <img id="navAvatar" class="avatar" alt="avatar">
+      <span id="navName"></span>
+      <button class="btn" onclick="showView('feed')">Domov</button>
+      <button class="btn" onclick="showView('profile')">Profil</button>
+      <button class="btn" onclick="showView('friends')">Prijatelji</button>
+      <button class="btn" onclick="showView('chat')">Chat</button>
+      <select id="themeSelect" class="input" style="width:auto" title="Tema" onchange="setTheme(this.value)">
+        <option value="dark">Temna</option>
+        <option value="light">Svetla</option>
+        <option value="purple">Vijolična</option>
+        <option value="forest">Gozdna</option>
+      </select>
+      <button class="btn danger" onclick="logout()">Odjava</button>
+    </div>
   </header>
 
-  <main id="app" class="hide">
-    <!-- Stories -->
-    <section class="card" style="padding:10px">
-      <div class="stories" id="stories"></div>
-    </section>
-
-    <!-- Feed -->
-    <section class="feed" id="feed"></section>
-  </main>
-
-  <!-- Bottom Dock (CONTENT ABOVE THE BUTTONS) -->
-  <div class="dock collapsed" id="dock">
-    <div class="handle"><span></span></div>
-
-    <div class="content">
-      <!-- Panels -->
-      <div class="panel" id="panelChat">
-        <div id="chatList" class="list"></div>
-        <div id="chatWindow" class="chat hide">
-          <div class="row" style="justify-content:space-between;margin-bottom:6px">
-            <div><strong id="chatTitle">Chat</strong></div>
-            <div class="hint" id="chatHint"></div>
+  <div class="container">
+    <aside class="left">
+      <div class="card">
+        <div class="stack">
+          <img id="sideAvatar" class="avatar" alt="">
+          <div class="stack-col">
+            <strong id="sideName">Gost</strong>
+            <span class="muted" id="sideEmail"></span>
           </div>
-          <div class="messages" id="messages"></div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="grid2">
+          <div class="pill"><small>Objave: <span id="countPosts">0</span></small></div>
+          <div class="pill"><small>Prijatelji: <span id="countFriends">0</span></small></div>
         </div>
       </div>
-
-      <div class="panel" id="panelSearch">
-        <div class="row" style="gap:8px">
-          <button id="btnCloseSearch">✖</button>
-          <input id="searchInput" placeholder="Išči uporabnike (v živo)…" />
-          <button id="btnWhoAddedMe">Kdo je dodal mene?</button>
+      <div class="card">
+        <div class="stack-col">
+          <strong>Dodaj zgodbo (story)</strong>
+          <input id="storyImage" class="input" type="file" accept="image/*" />
+          <button class="btn primary" onclick="addStory()">Objavi zgodbo (24h)</button>
+          <small class="muted">Slike se shranijo v Firebase kot Base64, kot si želel.</small>
         </div>
-        <div id="searchResults" class="list" style="margin-top:10px"></div>
-        <div id="profilePreview" class="card hide" style="padding:10px;margin-top:10px"></div>
       </div>
-
-      <div class="panel" id="panelProfile">
-        <div class="row" style="gap:8px">
-          <button id="btnCloseProfile">✖</button>
-          <button id="btnEditProfile">Uredi</button>
-          <button id="btnTogglePublic">Javno/Zasebno</button>
+      <div class="card">
+        <div class="stack-col">
+          <strong>Nova objava</strong>
+          <textarea id="postText" class="input" placeholder="Kaj se dogaja?" rows="3"></textarea>
+          <input id="postImage" class="input" type="file" accept="image/*" />
+          <button class="btn primary" onclick="createPost()">Objavi</button>
         </div>
-        <div id="myProfile" class="stack" style="margin-top:10px"></div>
-        <div id="editProfile" class="card hide" style="padding:10px;margin-top:10px">
-          <div class="stack">
-            <label>Ime</label><input id="epName" />
-            <label>Slika</label><input id="epPhoto" type="file" accept="image/*" />
-            <label>Opis</label><textarea id="epBio" rows="3"></textarea>
+      </div>
+    </aside>
+
+    <main>
+      <!-- AUTH VIEW -->
+      <section id="view-auth" class="card">
+        <nav class="tabs">
+          <button id="tabLogin" class="active" onclick="switchAuthTab('login')">Prijava</button>
+          <button id="tabRegister" onclick="switchAuthTab('register')">Registracija</button>
+        </nav>
+        <div id="loginForm">
+          <div class="grid2">
+            <input id="loginEmail" class="input" placeholder="Email" />
+            <input id="loginPass" class="input" placeholder="Geslo" type="password" />
+          </div>
+          <div style="height:8px"></div>
+          <button class="btn primary" onclick="login()">Prijava</button>
+        </div>
+        <div id="registerForm" class="hidden">
+          <div class="grid2">
+            <input id="regName" class="input" placeholder="Ime in priimek" />
+            <input id="regEmail" class="input" placeholder="Email" />
+          </div>
+          <div class="grid2" style="margin-top:8px">
+            <input id="regPass" class="input" placeholder="Geslo" type="password" />
+            <input id="regPass2" class="input" placeholder="Ponovi geslo" type="password" />
+          </div>
+          <div class="stack" style="margin-top:8px">
+            <input id="regAvatar" type="file" accept="image/*" />
+            <small class="muted">Neobvezno: naloži fotografijo</small>
+          </div>
+          <button class="btn primary" onclick="register()" style="margin-top:8px">Ustvari račun</button>
+        </div>
+      </section>
+
+      <!-- FEED VIEW -->
+      <section id="view-feed" class="hidden">
+        <div class="card">
+          <strong>Zgodbe</strong>
+          <div class="story-strip" id="storiesStrip"></div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="list" id="feedList"></div>
+      </section>
+
+      <!-- PROFILE VIEW -->
+      <section id="view-profile" class="hidden card">
+        <div class="stack">
+          <img id="profileAvatar" class="avatar" alt="">
+          <div class="stack-col" style="flex:1">
+            <input id="profileName" class="input" placeholder="Ime" />
+            <input id="profileBio" class="input" placeholder="Opis / Bio" />
+          </div>
+          <div class="stack-col">
+            <label class="row"><input type="checkbox" id="profilePublic"> <span>Javni profil</span></label>
+            <small class="muted">Če je izklopljeno, je profil zaseben in tvoje objave vidijo samo prijatelji.</small>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:8px">
+          <input id="profilePicFile" type="file" accept="image/*" />
+          <button class="btn" onclick="saveProfile()">Shrani profil</button>
+        </div>
+      </section>
+
+      <!-- FRIENDS VIEW -->
+      <section id="view-friends" class="hidden card">
+        <div class="grid2">
+          <div>
+            <strong>Najdi ljudi</strong>
+            <input id="searchUser" class="input" placeholder="Išči po emailu ali imenu" oninput="searchUsers(this.value)" />
+            <div id="searchResults" class="list" style="margin-top:8px"></div>
+          </div>
+          <div>
+            <strong>Tvoji prijatelji</strong>
+            <div id="friendsList" class="list" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <strong>Prošnje za prijateljstvo</strong>
+        <div id="requestsList" class="list" style="margin-top:8px"></div>
+      </section>
+
+      <!-- CHAT VIEW -->
+      <section id="view-chat" class="hidden">
+        <div class="grid2">
+          <div class="card" style="max-height:70vh;overflow:auto">
+            <div class="toolbar">
+              <button class="btn primary" onclick="startDirectChatPrompt()">+ Nov 1‑na‑1</button>
+              <button class="btn" onclick="startGroupChatPrompt()">+ Nova skupina</button>
+            </div>
+            <div id="chatList" class="list" style="margin-top:8px"></div>
+          </div>
+          <div class="card" style="max-height:70vh;display:flex;flex-direction:column">
+            <div id="chatHeader" class="row" style="justify-content:space-between">
+              <strong id="chatTitle">Izberi pogovor</strong>
+              <small id="chatMembers" class="muted"></small>
+            </div>
+            <div id="messages" style="flex:1;overflow:auto;margin:10px 0;display:flex;flex-direction:column;gap:8px"></div>
             <div class="row">
-              <div class="stack" style="flex:1">
-                <label>Rojstvo</label><input id="epBirthday" type="date" />
-                <select id="visBirthday"><option value="public">Javno</option><option value="friends">Prijatelji</option><option value="private">Zasebno</option></select>
-              </div>
-              <div class="stack" style="flex:1">
-                <label>Kraj</label><input id="epCity" />
-                <select id="visCity"><option value="public">Javno</option><option value="friends">Prijatelji</option><option value="private">Zasebno</option></select>
-              </div>
-              <div class="stack" style="flex:1">
-                <label>Razmerje</label><input id="epRel" />
-                <select id="visRel"><option value="public">Javno</option><option value="friends">Prijatelji</option><option value="private">Zasebno</option></select>
-              </div>
-            </div>
-            <div class="row">
-              <button id="btnSaveProfile" class="primary">Shrani</button>
-              <button id="btnCancelEdit" class="ghost">Prekliči</button>
+              <input id="msgInput" class="input" placeholder="Sporočilo..." onkeydown="if(event.key==='Enter'){sendMessage()}" />
+              <input id="msgImage" type="file" accept="image/*" />
+              <button class="btn primary" onclick="sendMessage()">Pošlji</button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+    </main>
 
-      <div class="panel" id="panelSettings">
-        <div class="row" style="gap:8px;align-items:center">
-          <button id="btnCloseSettings">✖</button>
-          <div style="font-weight:700">Nastavitve</div>
-        </div>
-        <div style="margin-top:10px" class="stack">
-          <div style="font-weight:700">Tema</div>
-          <div class="themes">
-            <div class="swatch" data-theme-pick="breeze">
-              <div><strong>Breeze</strong></div>
-              <div class="colors"><div class="dot" style="background:#F7F8FA;border:1px solid #E5E7EB"></div><div class="dot" style="background:#2563EB"></div><div class="dot" style="background:#22C55E"></div></div>
-            </div>
-            <div class="swatch" data-theme-pick="midnight">
-              <div><strong>Midnight</strong></div>
-              <div class="colors"><div class="dot" style="background:#0B1020"></div><div class="dot" style="background:#60A5FA"></div><div class="dot" style="background:#34D399"></div></div>
-            </div>
-            <div class="swatch" data-theme-pick="obsidian">
-              <div><strong>Obsidian</strong></div>
-              <div class="colors"><div class="dot" style="background:#000"></div><div class="dot" style="background:#4F46E5"></div><div class="dot" style="background:#10B981"></div></div>
-            </div>
-            <div class="swatch" data-theme-pick="sunset">
-              <div><strong>Sunset</strong></div>
-              <div class="colors"><div class="dot" style="background:#1B0E0A"></div><div class="dot" style="background:#FB923C"></div><div class="dot" style="background:#F59E0B"></div></div>
-            </div>
-          </div>
+    <aside class="right">
+      <div class="card notice">
+        <strong>Navodila za zagon</strong>
+        <ol>
+          <li>Odpri <span class="kbd">index.html</span> v brskalniku.</li>
+          <li>V spodnji kodi <strong>zamenjaj</strong> <span class="kbd">YOUR_FIREBASE_CONFIG</span> s svojimi podatki (Project settings → SDK setup &amp; config).</li>
+          <li>V konzoli Firebase <strong>omogoči</strong> Authentication (Email/Password) in Firestore Database.</li>
+        </ol>
+        <small class="muted">Opomba: primer shranjuje slike kot Base64 v Firestore dokumentih (na tvojo željo). Za večje projekte priporočam Firebase Storage.</small>
+      </div>
+      <div class="card">
+        <strong>Nastavitve</strong>
+        <div class="stack-col">
+          <label>Izberi temo zgoraj v vrstici.</label>
+          <label class="row"><input type="checkbox" id="showPublicOnly" onchange="renderFeed()"> Prikaži samo javne objave</label>
         </div>
       </div>
-    </div>
-
-    <!-- BARS AT THE BOTTOM OF THE DOCK -->
-    <div class="bar" id="dockBarDefault">
-      <button data-action="chat">💬 Chat</button>
-      <button data-action="search">🔎 Iskalnik</button>
-      <button data-action="profile">👤 Profil</button>
-      <button data-action="settings">⚙️ Nastavitve</button>
-    </div>
-
-    <div class="bar hide" id="dockBarChat">
-      <button data-action="close">✖</button>
-      <button data-action="add-group">➕ Skupina</button>
-      <button data-action="autoseen">▶️ Autoseen</button>
-      <button data-action="notif-toggle">🔔 Obvestila</button>
-    </div>
-
-    <div class="bar hide" id="dockBarChatOpen" style="gap:8px">
-      <button data-action="back">⬅</button>
-      <input id="chatInput" placeholder="Napiši sporočilo… (Enter=pošlji)" />
-      <button id="btnSend">Pošlji</button>
-      <button id="btnAddImage" class="hide">🖼️</button>
-      <input type="file" id="chatImagePicker" accept="image/*" class="hide" />
-    </div>
+    </aside>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <!-- Story Viewer Overlay -->
-  <div class="story-viewer" id="storyViewer">
-    <div class="story-frame">
-      <div class="story-header">
-        <div class="avatar" id="svAvatar"></div>
-        <div style="flex:1">
-          <div id="svAuthor" style="font-weight:700"></div>
-          <div id="svTime" class="hint" style="color:#ddd"></div>
-        </div>
-        <button id="svClose">Zapri</button>
-      </div>
-      <div class="story-media"><img id="svImg" alt="story"/></div>
-    </div>
-    <div class="story-nav"><div id="svPrev"></div><div id="svNext"></div></div>
-  </div>
-
-  <!-- Firebase SDKs (REAL DATA ONLY; no mock seed) -->
+  <!-- Firebase SDK (v9 modular preko CDN) -->
   <script type="module">
-    // ======== FIREBASE BOOTSTRAP ========
-   const firebaseConfig = {
-  apiKey: "AIzaSyAhA1s2iiJDMMeqoOrp1asJO1eha_R0ivg",
-  authDomain: "slychat1-b76db.firebaseapp.com",
-  databaseURL: "https://slychat1-b76db-default-rtdb.firebaseio.com",
-  projectId: "slychat1-b76db",
-  storageBucket: "slychat1-b76db.firebasestorage.app",
-  messagingSenderId: "508879069664",
-  appId: "1:508879069664:web:ce963d111297cd3480cb85",
-  measurementId: "G-D34XJNNGNQ"
-};
+    // ⚙️ 1) VSTAVI SVOJO FIREBASE KONFIGURACIJO
+    const firebaseConfig = /** @type {import('firebase/app').FirebaseOptions} */ ({
+      apiKey: "YOUR_FIREBASE_CONFIG_apiKey",
+      authDomain: "YOUR_FIREBASE_CONFIG_authDomain",
+      projectId: "YOUR_FIREBASE_CONFIG_projectId",
+      storageBucket: "YOUR_FIREBASE_CONFIG_storageBucket", // neuporabljeno pri Base64
+      messagingSenderId: "YOUR_FIREBASE_CONFIG_messagingSenderId",
+      appId: "YOUR_FIREBASE_CONFIG_appId"
+    });
 
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, fetchSignInMethodsForEmail, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, query, where, orderBy, limit, onSnapshot, startAt, endAt } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+    // 2) Uvoz Firebase modulov
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, query, where, orderBy, onSnapshot, getDocs, or } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
-    // ======== DOM HELPERS ========
+    // 🔧 Global state
+    let currentUser = null;
+    let activeChatId = null;
+
+    // 📦 Helperji
     const $ = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
-    const show = (el, yes=true)=> el.classList.toggle('hide', !yes);
-    const toast = (msg)=>{ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 5000); };
+    function showView(name){
+      ['auth','feed','profile','friends','chat'].forEach(v=>$('#view-'+v)?.classList.add('hidden'));
+      $('#view-'+name)?.classList.remove('hidden');
+    }
+    function setTheme(t){ document.body.setAttribute('data-theme', t); localStorage.setItem('xlifer-theme', t); }
+    setTheme(localStorage.getItem('xlifer-theme')||'dark');
 
-    // ======== THEME ========
-    const applyTheme = (name)=>{ document.documentElement.setAttribute('data-theme', name); localStorage.setItem('xlifer_theme', name); };
-    (function(){ const t = localStorage.getItem('xlifer_theme') || 'breeze'; applyTheme(t); })();
-    $$('#panelSettings .swatch').forEach(sw=> sw.addEventListener('click', async ()=>{
-      const theme = sw.getAttribute('data-theme-pick');
-      applyTheme(theme);
-      if(auth.currentUser){ await setDoc(doc(db, 'users', auth.currentUser.uid), { settings:{ theme } }, { merge:true }); }
-    }));
+    function fileToBase64(file){
+      return new Promise((resolve,reject)=>{
+        const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
+      });
+    }
 
-    // ======== AUTH FLOW (progressive) ========
-    const authView = $('#authView');
-    const appbar = $('#appbar');
-    const appMain = $('#app');
-    const whoami = $('#whoami');
+    function timeago(ts){
+      const d = ts?.toDate ? ts.toDate() : (ts instanceof Date? ts : new Date(ts));
+      const diff = Math.floor((Date.now()-d.getTime())/1000);
+      const units=[[31536000,'leto'],[2592000,'mesec'],[604800,'teden'],[86400,'dan'],[3600,'ura'],[60,'min'],[1,'s']];
+      for(const [sec,label] of units){ if(diff>=sec) return Math.floor(diff/sec)+" "+label+ (Math.floor(diff/sec)>1 && label!=='s'?'i':'') + ' nazaj'; }
+      return 'zdaj';
+    }
 
-    const loginEmail = $('#loginEmail');
-    const btnCheckEmail = $('#btnCheckEmail');
-    const emailStatus = $('#emailStatus');
-    const loginStepPassword = $('#loginStepPassword');
-    const loginStepEmail = $('#loginStepEmail');
-    const loginPassword = $('#loginPassword');
-    const btnDoLogin = $('#btnDoLogin');
-    const btnBackToEmail = $('#btnBackToEmail');
+    // 🔐 Auth
+    window.switchAuthTab = (t)=>{
+      $('#tabLogin').classList.toggle('active', t==='login');
+      $('#tabRegister').classList.toggle('active', t==='register');
+      $('#loginForm').classList.toggle('hidden', t!=='login');
+      $('#registerForm').classList.toggle('hidden', t!=='register');
+    }
 
-    const btnForgot = $('#btnForgot');
-    const btnStartRegister = $('#btnStartRegister');
+    window.register = async ()=>{
+      const name = $('#regName').value.trim();
+      const email = $('#regEmail').value.trim();
+      const pass = $('#regPass').value.trim();
+      const pass2 = $('#regPass2').value.trim();
+      if(!name||!email||!pass||pass!==pass2){ alert('Preveri polja.'); return; }
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      let photoBase64 = '';
+      const f = $('#regAvatar').files?.[0];
+      if(f) photoBase64 = await fileToBase64(f);
+      await updateProfile(cred.user, { displayName:name, photoURL: photoBase64||null });
+      await setDoc(doc(db,'users',cred.user.uid),{
+        uid: cred.user.uid,
+        name, email,
+        photoBase64,
+        bio:'',
+        publicProfile:true,
+        friendsCount:0, postsCount:0,
+        createdAt: serverTimestamp()
+      });
+    }
 
-    const regBox = $('#registerBox');
-    const regName = $('#regName');
-    const regPhoto = $('#regPhoto');
-    const regEmail = $('#regEmail');
-    const regPass1 = $('#regPass1');
-    const regPass2 = $('#regPass2');
-    const regStatus = $('#regStatus');
-    const btnDoRegister = $('#btnDoRegister');
-    const btnCancelRegister = $('#btnCancelRegister');
+    window.login = async ()=>{
+      const email = $('#loginEmail').value.trim();
+      const pass = $('#loginPass').value.trim();
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
 
-    btnCheckEmail.addEventListener('click', async ()=>{
-      const email = loginEmail.value.trim();
-      if(!email){ emailStatus.textContent='Vnesi e-mail.'; return; }
-      emailStatus.textContent='Preverjam…';
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if(methods.includes('password')){
-        emailStatus.textContent='Najden račun. Vnesi geslo.';
-        show(loginStepEmail,false); show(loginStepPassword,true); loginPassword.focus();
-      }else{ emailStatus.textContent='Ta e-mail še ni registriran. Ustvari račun?'; }
-    });
-
-    btnBackToEmail.addEventListener('click', ()=>{ show(loginStepPassword,false); show(loginStepEmail,true); });
-
-    btnDoLogin.addEventListener('click', async ()=>{
-      const email = loginEmail.value.trim();
-      const pass = loginPassword.value;
-      try{ await signInWithEmailAndPassword(auth, email, pass); }catch(e){ $('#passStatus').textContent = 'Napačno geslo ali napaka.'; }
-    });
-
-    btnForgot.addEventListener('click', async ()=>{
-      const email = loginEmail.value.trim();
-      if(!email){ emailStatus.textContent='Vnesi e-mail za ponastavitev.'; return }
-      await sendPasswordResetEmail(auth, email);
-      toast('Če e-mail obstaja, smo poslali navodila.');
-    });
-
-    btnStartRegister.addEventListener('click', ()=>{ show(loginStepEmail,false); show(regBox,true); });
-    btnCancelRegister.addEventListener('click', ()=>{ show(regBox,false); show(loginStepEmail,true); });
-
-    btnDoRegister.addEventListener('click', async ()=>{
-      const name = regName.value.trim();
-      const email = regEmail.value.trim();
-      const p1 = regPass1.value; const p2 = regPass2.value;
-      if(!name||!email||!p1){ regStatus.textContent='Izpolni vsa polja.'; return; }
-      if(p1!==p2){ regStatus.textContent='Gesli se ne ujemata.'; return; }
-      try{
-        const cred = await createUserWithEmailAndPassword(auth, email, p1);
-        await updateProfile(cred.user, { displayName:name });
-        let photoURL = '';
-        if(regPhoto.files[0]){
-          const b64 = await fileToBase64(regPhoto.files[0]);
-          const r = ref(storage, `pfp/${cred.user.uid}.txt`); // base64 as text
-          await uploadString(r, b64, 'raw');
-          photoURL = await getDownloadURL(r);
-        }
-        await setDoc(doc(db,'users',cred.user.uid),{
-          displayName:name, photoURL:photoURL||'', createdAt: serverTimestamp(), isPublic:true,
-          about:{}, visibility:{ birthday:'friends', city:'public', relationship:'private' },
-          displayName_lc: name.toLowerCase(), settings:{ theme: document.documentElement.getAttribute('data-theme') }
-        });
-      }catch(e){ regStatus.textContent='Napaka pri registraciji.'; console.error(e); }
-    });
+    window.logout = ()=> signOut(auth);
 
     onAuthStateChanged(auth, async (user)=>{
-      if(user){ enterApp(user); } else { show(authView,true); show(appbar,false); show(appMain,false); }
+      currentUser = user;
+      if(!user){
+        $('#authBar').classList.remove('hidden');
+        $('#userBar').classList.add('hidden');
+        showView('auth');
+        return;
+      }
+      $('#authBar').classList.add('hidden');
+      $('#userBar').classList.remove('hidden');
+      $('#navName').textContent = user.displayName || user.email;
+      $('#navAvatar').src = user.photoURL || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="%231f2a3a"/><text x="50%" y="55%" font-size="14" fill="white" text-anchor="middle">🙂</text></svg>';
+      $('#sideAvatar').src = $('#navAvatar').src; $('#sideName').textContent = user.displayName||'Uporabnik'; $('#sideEmail').textContent = user.email||'';
+
+      // Naloži profil
+      const uref = doc(db,'users', user.uid);
+      const snap = await getDoc(uref);
+      if(snap.exists()){
+        const u = snap.data();
+        $('#profileName').value = u.name||'';
+        $('#profileBio').value = u.bio||'';
+        $('#profilePublic').checked = u.publicProfile!==false;
+        $('#countFriends').textContent = u.friendsCount||0;
+        $('#countPosts').textContent = u.postsCount||0;
+        if(u.photoBase64){ $('#profileAvatar').src = u.photoBase64; $('#navAvatar').src = u.photoBase64; $('#sideAvatar').src=u.photoBase64; }
+      }
+      showView('feed');
+      subscribeFeed();
+      subscribeStories();
+      subscribeChats();
+      loadFriendsUI();
     });
 
-    async function enterApp(user){
-      show(authView,false); show(appbar,true); show(appMain,true);
-      whoami.textContent = user.displayName? `Pozdravljen/-a, ${user.displayName}` : 'Prijavljen';
-      // load theme preference
-      try{ const snap = await getDoc(doc(db,'users',user.uid)); const data = snap.data(); if(data?.settings?.theme){ applyTheme(data.settings.theme); } }catch{}
-      subscribeStoriesAndFeed();
+    // 👤 Profil
+    window.saveProfile = async ()=>{
+      if(!currentUser) return;
+      const name = $('#profileName').value.trim();
+      const bio = $('#profileBio').value.trim();
+      const publicProfile = $('#profilePublic').checked;
+      let photoBase64 = null;
+      const f = $('#profilePicFile').files?.[0];
+      if(f) photoBase64 = await fileToBase64(f);
+      const upd = { name, bio, publicProfile };
+      if(photoBase64) upd.photoBase64 = photoBase64;
+      await updateDoc(doc(db,'users',currentUser.uid), upd);
+      await updateProfile(currentUser,{ displayName:name, photoURL: photoBase64||currentUser.photoURL||null });
+      alert('Profil shranjen.');
+      $('#navName').textContent = name||currentUser.email;
+      if(photoBase64){ $('#profileAvatar').src = photoBase64; $('#navAvatar').src=photoBase64; $('#sideAvatar').src=photoBase64; }
     }
 
-    // ======== FEED & STORIES (FIREBASE ONLY) ========
-    function subscribeStoriesAndFeed(){
-      const storiesEl = $('#stories'); storiesEl.innerHTML = '';
-      // stories (not filtered by friends for simplicity; add friend-based filter later)
-      const qStories = query(collection(db,'stories'), where('expiresAt','>', new Date()), orderBy('expiresAt','desc'), limit(30));
-      onSnapshot(qStories, (snap)=>{
-        storiesEl.innerHTML='';
-        snap.forEach(docu=>{
-          const s = docu.data();
+    // 📰 Objave
+    async function buildFeedQuery(){
+      const showPublicOnly = $('#showPublicOnly').checked;
+      if(showPublicOnly){
+        return query(collection(db,'posts'), where('public','==',true), orderBy('createdAt','desc'));
+      }
+      // Prikaži: moje + prijateljev + javne
+      const myUid = currentUser.uid;
+      const friends = await getFriendUids(myUid);
+      const allowed = new Set([myUid, ...friends]);
+      // Firestore ne podpira dinamičnega IN; prikaz rešimo z naročnino na javne + moje + prijatelje posebej in združimo.
+      return null; // uporabljamo subscribeFeed(), ki združuje tri tokove
+    }
+
+    let unsubPublic=null,unsubMine=null,unsubFriends=[];
+    function clearFeedSubs(){ unsubPublic&&unsubPublic(); unsubMine&&unsubMine(); unsubFriends.forEach(u=>u()); unsubFriends=[]; }
+
+    async function subscribeFeed(){
+      if(!currentUser) return;
+      clearFeedSubs();
+      const myUid = currentUser.uid;
+      const friends = await getFriendUids(myUid);
+      const feed = new Map();
+      const render = ()=>{
+        const items = Array.from(feed.values()).sort((a,b)=> (b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+        const el = $('#feedList'); el.innerHTML='';
+        for(const p of items){ el.appendChild(renderPostCard(p)); }
+      }
+      unsubPublic = onSnapshot(query(collection(db,'posts'), where('public','==',true), orderBy('createdAt','desc')), s=>{ s.docChanges().forEach(c=>{ if(c.type==='removed'){ feed.delete(c.doc.id);} else { feed.set(c.doc.id,{id:c.doc.id,...c.doc.data()}); } }); render(); });
+      unsubMine = onSnapshot(query(collection(db,'posts'), where('uid','==',myUid), orderBy('createdAt','desc')), s=>{ s.docChanges().forEach(c=>{ if(c.type==='removed'){ feed.delete(c.doc.id);} else { feed.set(c.doc.id,{id:c.doc.id,...c.doc.data()}); } }); render(); });
+      for(const fuid of friends){
+        const u = onSnapshot(query(collection(db,'posts'), where('uid','==',fuid), orderBy('createdAt','desc')), s=>{ s.docChanges().forEach(c=>{ if(c.type==='removed'){ feed.delete(c.doc.id);} else { feed.set(c.doc.id,{id:c.doc.id,...c.doc.data()}); } }); render(); });
+        unsubFriends.push(u);
+      }
+    }
+
+    function renderPostCard(p){
+      const card = document.createElement('div'); card.className='card';
+      card.innerHTML = `
+        <div class="row">
+          <img class="avatar" src="${p.authorPhoto||''}" onerror="this.style.visibility='hidden'">
+          <div class="stack-col" style="flex:1">
+            <strong>${p.authorName||'Uporabnik'}</strong>
+            <small class="muted">${timeago(p.createdAt)}</small>
+          </div>
+          ${p.public?'<span class="pill">Javno</span>':'<span class="pill">Samo prijatelji</span>'}
+        </div>
+        ${p.text?`<p style="white-space:pre-wrap">${escapeHtml(p.text)}</p>`:''}
+        ${p.imageBase64?`<img class="feed-img" src="${p.imageBase64}" alt="objava">`:''}
+      `;
+      return card;
+    }
+
+    function escapeHtml(s){ return s?.replace(/[&<>'"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))||'' }
+
+    window.createPost = async ()=>{
+      if(!currentUser) return;
+      const text = $('#postText').value.trim();
+      let imageBase64='';
+      const f = $('#postImage').files?.[0];
+      if(f) imageBase64 = await fileToBase64(f);
+      const userDoc = (await getDoc(doc(db,'users',currentUser.uid))).data();
+      const isPublic = userDoc?.publicProfile!==false;
+      await addDoc(collection(db,'posts'),{
+        uid: currentUser.uid,
+        authorName: userDoc?.name||currentUser.displayName||'Uporabnik',
+        authorPhoto: userDoc?.photoBase64||currentUser.photoURL||'',
+        text, imageBase64,
+        public: isPublic,
+        createdAt: serverTimestamp()
+      });
+      $('#postText').value=''; $('#postImage').value='';
+      await updateDoc(doc(db,'users',currentUser.uid),{ postsCount: (userDoc?.postsCount||0)+1 });
+    }
+
+    // 📚 Zgodbe (24h)
+    function subscribeStories(){
+      onSnapshot(query(collection(db,'stories'), orderBy('createdAt','desc')), s=>{
+        const host = $('#storiesStrip'); host.innerHTML='';
+        const now = Date.now();
+        s.forEach(d=>{
+          const st = d.data(); const exp = st.expiresAt?.toMillis?.() || 0; if(exp && exp < now) return; // potečene ne prikazujemo
           const el = document.createElement('div'); el.className='story';
-          el.innerHTML = `<div class="circle"><div class="inner">${s.base64?`<img alt="" src="${s.base64}"/>`:''}</div></div><div class="name">${s.authorName||'Uporabnik'}</div>`;
-          storiesEl.appendChild(el);
-        });
-      });
-
-      const feedEl = $('#feed'); feedEl.innerHTML = '';
-      const qFeed = query(collection(db,'posts'), where('visibility','==','public'), orderBy('createdAt','desc'), limit(30));
-      onSnapshot(qFeed, (snap)=>{
-        feedEl.innerHTML='';
-        snap.forEach(docu=>{
-          const p = docu.data();
-          const el = document.createElement('article'); el.className='post card';
-          el.innerHTML = `
-            <div class="head">
-              <div class="avatar">${p.authorPhoto?`<img src="${p.authorPhoto}" alt=""/>`:''}</div>
-              <div>
-                <div style="font-weight:700">${p.authorName||'Uporabnik'}</div>
-                <div class="meta">${(p.createdAt?.toDate?.()||new Date()).toLocaleString()}</div>
-              </div>
-            </div>
-            ${p.base64?`<div class="media"><img src="${p.base64}" alt=""/></div>`:''}
-            ${p.caption?`<div style="margin-top:6px">${p.caption}</div>`:''}
-            <div class="actions">
-              <button data-like="${docu.id}">❤️ Všeč mi je</button>
-              <button data-comment="${docu.id}">💬 Komentiraj</button>
-              <button data-share="${docu.id}">📤 Pošlji v chat</button>
-            </div>`;
-          feedEl.appendChild(el);
+          el.innerHTML = `<img class="story-img" src="${st.imageBase64}" alt="story"><div class="muted" style="margin-top:4px">${st.authorName||'Uporabnik'}</div>`;
+          host.appendChild(el);
         });
       });
     }
 
-    // ======== DOCK STATE MACHINE ========
-    const dock = $('#dock');
-    const dockBarDefault = $('#dockBarDefault');
-    const dockBarChat = $('#dockBarChat');
-    const dockBarChatOpen = $('#dockBarChatOpen');
-    const panels = { chat: $('#panelChat'), search: $('#panelSearch'), profile: $('#panelProfile'), settings: $('#panelSettings') };
-
-    dock.addEventListener('click', (e)=>{ if(e.target.closest('.handle')){ toggleDock(); } });
-    dockBarDefault.addEventListener('click', (e)=>{ const action = e.target.getAttribute('data-action'); if(!action) return; openDock(action); });
-    dockBarChat.addEventListener('click', (e)=>{
-      const action = e.target.getAttribute('data-action'); if(!action) return;
-      if(action==='close') return collapseDock();
-      if(action==='add-group') return createGroupFlow();
-      if(action==='autoseen') return runAutoseen();
-      if(action==='notif-toggle') return toggleNotifications();
-    });
-
-    $('#btnCloseSearch').addEventListener('click', collapseDock);
-    $('#btnCloseProfile').addEventListener('click', collapseDock);
-    $('#btnCloseSettings').addEventListener('click', collapseDock);
-
-    function toggleDock(){ dock.classList.toggle('expanded'); dock.classList.toggle('collapsed'); }
-    function expandDock(){ dock.classList.add('expanded'); dock.classList.remove('collapsed'); }
-    function collapseDock(){ dock.classList.add('collapsed'); dock.classList.remove('expanded'); resetDockBars(); hidePanels(); }
-    function resetDockBars(){ show(dockBarDefault,true); show(dockBarChat,false); show(dockBarChatOpen,false); }
-    function hidePanels(){ Object.values(panels).forEach(p=>p.classList.remove('active')); }
-
-    function openDock(panel){
-      expandDock(); hidePanels(); resetDockBars();
-      if(panel==='chat'){ panels.chat.classList.add('active'); show(dockBarDefault,false); show(dockBarChat,true); renderChatList(); }
-      else if(panel==='search'){ panels.search.classList.add('active'); }
-      else if(panel==='profile'){ panels.profile.classList.add('active'); renderMyProfile(); }
-      else if(panel==='settings'){ panels.settings.classList.add('active'); }
+    window.addStory = async ()=>{
+      const f = $('#storyImage').files?.[0]; if(!f){ alert('Izberi sliko.'); return; }
+      const imageBase64 = await fileToBase64(f);
+      const u = (await getDoc(doc(db,'users',currentUser.uid))).data();
+      const expires = new Date(Date.now()+24*60*60*1000);
+      await addDoc(collection(db,'stories'),{
+        uid: currentUser.uid,
+        authorName: u?.name||currentUser.displayName||'',
+        imageBase64,
+        createdAt: serverTimestamp(),
+        expiresAt: expires
+      });
+      $('#storyImage').value='';
     }
 
-    // ======== CHAT (FIREBASE, no mock) ========
-    const chatListEl = $('#chatList');
-    const chatWindow = $('#chatWindow');
-    const messagesEl = $('#messages');
-    const chatTitle = $('#chatTitle');
-    const chatHint = $('#chatHint');
-    const chatInput = $('#chatInput');
-    const btnSend = $('#btnSend');
-    const btnAddImage = $('#btnAddImage');
-    const chatImagePicker = $('#chatImagePicker');
+    // 🤝 Prijatelji
+    async function getFriendUids(uid){
+      const q1 = await getDocs(query(collection(db,'friends'), where('a','==',uid)));
+      const q2 = await getDocs(query(collection(db,'friends'), where('b','==',uid)));
+      const ids = new Set(); q1.forEach(d=>ids.add(d.data().b)); q2.forEach(d=>ids.add(d.data().a));
+      return Array.from(ids);
+    }
 
-    let unsubConvos = null; let unsubMsgs = null; let currentConvId = null; let pendingImageB64 = null;
+    window.searchUsers = async (term)=>{
+      const box = $('#searchResults'); box.innerHTML='';
+      if(!term) return;
+      const byEmail = await getDocs(query(collection(db,'users'), where('email','==',term)));
+      const byName = await getDocs(query(collection(db,'users'), where('name','>=',term), where('name','<=',term+"\uf8ff")));
+      const seen = new Set();
+      function addCard(u){ if(seen.has(u.uid)||u.uid===currentUser?.uid) return; seen.add(u.uid); const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="row"><img class="avatar" src="${u.photoBase64||''}" onerror="this.style.visibility='hidden'"> <div class="stack-col" style="flex:1"><strong>${u.name||u.email}</strong><small class=muted>${u.email||''}</small></div><button class="btn" onclick="sendFriendRequest('${u.uid}')">Dodaj</button></div>`; box.appendChild(c) }
+      byEmail.forEach(d=>addCard(d.data())); byName.forEach(d=>addCard(d.data()));
+    }
 
-    function renderChatList(){
-      show(chatWindow,false); chatListEl.innerHTML='<div class="hint">Nalagam pogovore…</div>';
-      if(unsubConvos) unsubConvos();
-      const qConvos = query(collection(db,'conversations'), where('members','array-contains', auth.currentUser.uid), orderBy('lastMessageAt','desc'), limit(50));
-      unsubConvos = onSnapshot(qConvos, (snap)=>{
-        chatListEl.innerHTML='';
-        if(snap.empty){ chatListEl.innerHTML = '<div class="hint">Ni pogovorov. Ustvari skupino ali začni nov chat.</div>'; }
-        snap.forEach(docu=>{
-          const c = docu.data();
-          const el = document.createElement('div'); el.className='item';
-          const name = c.type==='group' ? (c.title||'Skupina') : (c.memberNames?.find(m=>m.uid!==auth.currentUser.uid)?.name || 'Chat');
-          el.innerHTML = `<div class="avatar"></div><div class="name">${name}</div><div class="spacer"></div><div class="hint">${c.lastMessageAt? new Date(c.lastMessageAt.seconds*1000).toLocaleTimeString(): ''}</div>`;
-          el.addEventListener('click', ()=> openChat(docu.id, name));
-          chatListEl.appendChild(el);
-        });
+    window.sendFriendRequest = async (toUid)=>{
+      await addDoc(collection(db,'friendRequests'),{ from: currentUser.uid, to: toUid, createdAt: serverTimestamp(), status:'pending' });
+      alert('Prošnja poslana.');
+    }
+
+    async function loadFriendsUI(){
+      // Prijatelji
+      const fl = $('#friendsList'); fl.innerHTML='';
+      const ids = await getFriendUids(currentUser.uid);
+      for(const uid of ids){
+        const u = (await getDoc(doc(db,'users',uid))).data();
+        const c = document.createElement('div'); c.className='card'; c.innerHTML=`<div class="row"><img class="avatar" src="${u?.photoBase64||''}" onerror="this.style.visibility='hidden'"> <div class="stack-col" style="flex:1"><strong>${u?.name||u?.email||'Uporabnik'}</strong><small class="muted">${u?.email||''}</small></div><button class="btn" onclick="startDirectChat('${uid}')">Pogovor</button></div>`; fl.appendChild(c);
+      }
+      // Prošnje
+      const rq = await getDocs(query(collection(db,'friendRequests'), where('to','==',currentUser.uid), where('status','==','pending')));
+      const box = $('#requestsList'); box.innerHTML='';
+      rq.forEach(async d=>{
+        const r = d.data(); const u = (await getDoc(doc(db,'users',r.from))).data();
+        const c = document.createElement('div'); c.className='card'; c.innerHTML=`<div class="row"><img class="avatar" src="${u?.photoBase64||''}" onerror="this.style.visibility='hidden'"> <div class="stack-col" style="flex:1"><strong>${u?.name||u?.email}</strong><small class="muted">želi biti prijatelj</small></div><div class="toolbar"><button class="btn primary" onclick="acceptRequest('${d.id}','${r.from}')">Sprejmi</button><button class="btn ghost" onclick="declineRequest('${d.id}')">Zavrni</button></div></div>`; box.appendChild(c);
       });
     }
 
-    function openChat(convId, title){
-      currentConvId = convId; chatTitle.textContent = title||'Chat'; chatHint.textContent = '';
-      messagesEl.innerHTML=''; show(chatWindow,true); show(dockBarChat,false); show(dockBarChatOpen,true);
-      if(unsubMsgs) unsubMsgs();
-      const qMsgs = query(collection(db,'conversations',convId,'messages'), orderBy('createdAt','asc'), limit(500));
-      unsubMsgs = onSnapshot(qMsgs, (snap)=>{
-        messagesEl.innerHTML='';
-        snap.forEach(docu=>{
-          const m = docu.data();
-          const b = document.createElement('div'); b.className='bubble'+(m.authorId===auth.currentUser.uid?' me':'');
-          b.textContent = m.text || (m.base64? '[slika]':'');
-          if(m.base64 && !m.text){ b.innerHTML = `<img src="${m.base64}" alt="slika" style="max-width:100%"/>`; }
-          messagesEl.appendChild(b);
-        });
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+    window.acceptRequest = async (reqId, otherUid)=>{
+      // Dodaj povezavo (neusmerjena: shranimo (a,b))
+      await addDoc(collection(db,'friends'),{ a: currentUser.uid, b: otherUid, createdAt: serverTimestamp() });
+      await updateDoc(doc(db,'friendRequests',reqId),{ status:'accepted' });
+      // Števec
+      const me = await getDoc(doc(db,'users',currentUser.uid));
+      const him = await getDoc(doc(db,'users',otherUid));
+      await updateDoc(doc(db,'users',currentUser.uid),{ friendsCount:(me.data()?.friendsCount||0)+1 });
+      await updateDoc(doc(db,'users',otherUid),{ friendsCount:(him.data()?.friendsCount||0)+1 });
+      loadFriendsUI(); subscribeFeed();
+    }
+    window.declineRequest = async (reqId)=>{ await updateDoc(doc(db,'friendRequests',reqId),{ status:'declined' }); loadFriendsUI(); }
+
+    // 💬 Chat (1-1 in skupinski)
+    function subscribeChats(){
+      if(!currentUser) return;
+      onSnapshot(query(collection(db,'chats'), where('members','array-contains', currentUser.uid), orderBy('updatedAt','desc')), s=>{
+        const box = $('#chatList'); box.innerHTML='';
+        s.forEach(d=>{
+          const c = d.data();
+          const el = document.createElement('div'); el.className='card'; el.innerHTML = `<div class="row" style="cursor:pointer" onclick="openChat('${d.id}', '${escapeHtml(c.name||'Pogovor')}')"><strong>${c.name||'Pogovor'}</strong><small class="muted" style="margin-left:auto">${timeago(c.updatedAt)}</small></div>`; box.appendChild(el);
+        })
+      })
+    }
+
+    window.openChat = async (chatId, title)=>{
+      activeChatId = chatId; $('#chatTitle').textContent = title; $('#messages').innerHTML='';
+      const cs = await getDoc(doc(db,'chats', chatId));
+      const cdata = cs.data(); $('#chatMembers').textContent = 'Člani: '+(cdata?.members?.length||1);
+      onSnapshot(query(collection(db,'chats',chatId,'messages'), orderBy('createdAt','asc')), s=>{
+        const box = $('#messages'); box.innerHTML='';
+        s.forEach(d=>{
+          const m = d.data();
+          const row = document.createElement('div'); row.className='card';
+          row.innerHTML = `<div class="stack"><span class="pill">${m.fromName||m.from}</span><small class="muted">${timeago(m.createdAt)}</small></div>${m.text?`<div style="margin-top:6px">${escapeHtml(m.text)}</div>`:''}${m.imageBase64?`<img class="feed-img" src="${m.imageBase64}">`:''}`;
+          box.appendChild(row);
+          box.scrollTop = box.scrollHeight;
+        })
+      })
+      showView('chat');
+    }
+
+    window.sendMessage = async ()=>{
+      if(!activeChatId) return;
+      const text = $('#msgInput').value.trim();
+      let imageBase64='';
+      const f = $('#msgImage').files?.[0]; if(f) imageBase64 = await fileToBase64(f);
+      const u = (await getDoc(doc(db,'users',currentUser.uid))).data();
+      await addDoc(collection(db,'chats',activeChatId,'messages'),{
+        from: currentUser.uid,
+        fromName: u?.name||currentUser.displayName||'',
+        text, imageBase64,
+        createdAt: serverTimestamp()
       });
+      await updateDoc(doc(db,'chats',activeChatId),{ updatedAt: serverTimestamp() });
+      $('#msgInput').value=''; $('#msgImage').value='';
     }
 
-    chatInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); quickSend(); } });
-    function updateSendButtons(){ const empty = !chatInput.value.trim() && !pendingImageB64; show(btnAddImage, empty); show(btnSend, !empty); }
-    chatInput.addEventListener('input', updateSendButtons);
-    $('#dockBarChatOpen').addEventListener('click', (e)=>{ if(e.target.getAttribute('data-action')==='back'){ show(dockBarChatOpen,false); show(dockBarChat,true); show(chatWindow,false); if(unsubMsgs){unsubMsgs(); unsubMsgs=null;} } });
-    $('#btnAddImage').addEventListener('click', ()=> chatImagePicker.click());
-    chatImagePicker.addEventListener('change', async ()=>{ const f = chatImagePicker.files[0]; if(!f) return; pendingImageB64 = await fileToBase64(f); updateSendButtons(); toast('Slika pripravljena za pošiljanje.'); });
-    btnSend.addEventListener('click', sendWithOptions);
-
-    async function quickSend(){ if(!currentConvId) return; const txt = chatInput.value.trim(); if(!txt && !pendingImageB64) return; await pushMessage({ text: txt||'', base64: pendingImageB64||null }); chatInput.value=''; pendingImageB64=null; updateSendButtons(); }
-
-    async function sendWithOptions(){ if(!currentConvId) return; if(!chatInput.value.trim() && !pendingImageB64) return; const choice = window.prompt('Pošiljanje: vpiši "now" (takoj), "schedule:YYYY-MM-DD HH:MM" ali "temp:minutes"', 'now'); if(!choice) return; if(choice.startsWith('schedule:')){ const when = choice.replace('schedule:',''); await pushMessage({ text: chatInput.value.trim(), base64: pendingImageB64||null, scheduledFor: when }); } else if(choice.startsWith('temp:')){ const mins = parseInt(choice.replace('temp:',''),10)||10; const expiresAt = Date.now() + mins*60000; await pushMessage({ text: chatInput.value.trim(), base64: pendingImageB64||null, expiresAt }); } else { await quickSend(); } }
-
-    async function pushMessage({text='', base64=null, scheduledFor=null, expiresAt=null}){
-      const convRef = doc(db,'conversations', currentConvId);
-      await addDoc(collection(convRef,'messages'), { authorId: auth.currentUser.uid, text, base64, createdAt: serverTimestamp(), scheduledFor: scheduledFor||null, expiresAt: expiresAt||null });
-      await updateDoc(convRef, { lastMessageAt: serverTimestamp() });
+    window.startDirectChatPrompt = async ()=>{
+      const email = prompt('Vnesi email osebe:'); if(!email) return;
+      const q = await getDocs(query(collection(db,'users'), where('email','==',email)));
+      if(q.empty){ alert('Ni uporabnika.'); return; }
+      const other = q.docs[0].data();
+      startDirectChat(other.uid);
     }
 
-    function createGroupFlow(){ toast('Izberi prijatelje (implementiraj v iskalniku)'); }
-    function runAutoseen(){ toast('Autoseen bo šel po pogovorih z neprebranimi (TODO: per-user read markers).'); }
-    function toggleNotifications(){ toast('Preklop obvestil (FCM) – TODO'); }
-
-    // ======== SEARCH (FIREBASE) ========
-    const searchInput = $('#searchInput');
-    const searchResults = $('#searchResults');
-    const profilePreview = $('#profilePreview');
-
-    searchInput.addEventListener('input', ()=>{
-      const qtxt = searchInput.value.trim().toLowerCase();
-      if(!qtxt){ searchResults.innerHTML=''; show(profilePreview,false); return; }
-      const qUsers = query(collection(db,'users'), orderBy('displayName_lc'), startAt(qtxt), endAt(qtxt+''), limit(20));
-      onSnapshot(qUsers, (snap)=>{
-        searchResults.innerHTML=''; show(profilePreview,false);
-        snap.forEach(docu=>{
-          const u = docu.data();
-          const el = document.createElement('div'); el.className='item';
-          el.innerHTML = `<div class="avatar">${u.photoURL?`<img src="${u.photoURL}"/>`:''}</div><div class="name">${u.displayName||'Uporabnik'}</div>`;
-          el.addEventListener('click', ()=> showProfilePreview(docu.id, u));
-          searchResults.appendChild(el);
-        });
-      });
-    });
-
-    $('#btnWhoAddedMe').addEventListener('click', ()=>{ toast('Seznam uporabnikov, ki so te dodali (TODO: friendships).'); });
-
-    function showProfilePreview(uid, user){
-      profilePreview.innerHTML = `
-        <div class="row" style="align-items:center;gap:10px">
-          <div class="avatar">${user.photoURL?`<img src="${user.photoURL}"/>`:''}</div>
-          <div style="flex:1"><div style="font-weight:700">${user.displayName||'Uporabnik'}</div><div class="hint">${user.bio||''}</div></div>
-          <button id="btnAddFriend">Dodaj</button>
-        </div>
-        <div class="divider"></div>
-        <div class="stack"><div style="opacity:.7">Objave</div><div class="row"><div class="card" style="width:100px;height:80px"></div><div class="card" style="width:100px;height:80px"></div><div class="card" style="width:100px;height:80px"></div></div></div>`;
-      show(profilePreview,true);
-      profilePreview.querySelector('#btnAddFriend').addEventListener('click', async ()=>{ toast(`Poslana prošnja za prijateljstvo: ${user.displayName||uid}`); /* TODO friendships */ });
+    window.startDirectChat = async (otherUid)=>{
+      const name = '1‑na‑1';
+      const docRef = await addDoc(collection(db,'chats'),{ name, isGroup:false, members:[currentUser.uid, otherUid], updatedAt: serverTimestamp() });
+      openChat(docRef.id, name);
     }
 
-    // ======== PROFILE ========
-    const myProfile = $('#myProfile');
-    const editProfile = $('#editProfile');
-    $('#btnEditProfile').addEventListener('click', ()=>{ show(editProfile,true); fillEditProfile(); });
-    $('#btnCancelEdit').addEventListener('click', ()=>{ show(editProfile,false); });
-    $('#btnTogglePublic').addEventListener('click', async ()=>{ const uref = doc(db,'users',auth.currentUser.uid); const snap = await getDoc(uref); const cur = !!snap.data()?.isPublic; await updateDoc(uref,{ isPublic: !cur }); toast(`Profil ${!cur? 'javno':'zasebno'}`); renderMyProfile(); });
-    $('#btnSaveProfile').addEventListener('click', async ()=>{
-      const name = $('#epName').value.trim();
-      const bio = $('#epBio').value.trim();
-      const birthday = $('#epBirthday').value||null;
-      const city = $('#epCity').value.trim();
-      const rel = $('#epRel').value.trim();
-      const vis = { birthday: $('#visBirthday').value, city: $('#visCity').value, relationship: $('#visRel').value };
-      let photoURL = null;
-      const file = $('#epPhoto').files[0];
-      if(file){ const b64 = await fileToBase64(file); const r = ref(storage, `pfp/${auth.currentUser.uid}.txt`); await uploadString(r, b64, 'raw'); photoURL = await getDownloadURL(r); }
-      await setDoc(doc(db,'users',auth.currentUser.uid), {
-        displayName: name || auth.currentUser.displayName || '', bio, about:{birthday, city, relationship:rel}, visibility: vis,
-        ...(photoURL? { photoURL } : {})
-      }, { merge:true });
-      toast('Profil shranjen.'); show(editProfile,false); renderMyProfile();
-    });
-
-    async function renderMyProfile(){
-      const snap = await getDoc(doc(db,'users',auth.currentUser.uid));
-      const u = snap.data()||{};
-      myProfile.innerHTML = `
-        <div class="row" style="align-items:center;gap:10px">
-          <div class="avatar">${u.photoURL?`<img src="${u.photoURL}" alt=""/>`:''}</div>
-          <div>
-            <div style="font-weight:800">${u.displayName||'Moj profil'}</div>
-            <div class="hint">Status: ${u.isPublic? 'javno':'zasebno'}</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="stack">
-          <div><strong>Opis</strong><div class="hint">${u.bio||'—'}</div></div>
-          <div class="row" style="gap:10px">
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Rojstvo</div>${u?.about?.birthday||'—'}</div>
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Kraj</div>${u?.about?.city||'—'}</div>
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Razmerje</div>${u?.about?.relationship||'—'}</div>
-          </div>
-        </div>`;
+    window.startGroupChatPrompt = async ()=>{
+      const emails = prompt('Vnesi emaile članov, ločene z vejicami:'); if(!emails) return;
+      const parts = emails.split(',').map(s=>s.trim()).filter(Boolean);
+      const memberUids = [currentUser.uid];
+      for(const e of parts){ const q=await getDocs(query(collection(db,'users'), where('email','==',e))); if(!q.empty) memberUids.push(q.docs[0].data().uid); }
+      const name = prompt('Ime skupine?')||'Skupinski chat';
+      const docRef = await addDoc(collection(db,'chats'),{ name, isGroup:true, members: Array.from(new Set(memberUids)), updatedAt: serverTimestamp() });
+      openChat(docRef.id, name);
     }
 
-    async function fillEditProfile(){
-      const snap = await getDoc(doc(db,'users',auth.currentUser.uid));
-      const u = snap.data()||{};
-      $('#epName').value = u.displayName||'';
-      $('#epBio').value = u.bio||'';
-      $('#epBirthday').value = u?.about?.birthday||'';
-      $('#epCity').value = u?.about?.city||'';
-      $('#epRel').value = u?.about?.relationship||'';
-      $('#visBirthday').value = u?.visibility?.birthday||'friends';
-      $('#visCity').value = u?.visibility?.city||'public';
-      $('#visRel').value = u?.visibility?.relationship||'private';
-    }
+    // 🧵 Stories & Posts: UI render preklop
+    window.renderFeed = ()=>{ subscribeFeed(); }
 
-    // ======== UTIL ========
-    function fileToBase64(file){ return new Promise((res,rej)=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+    // 📈 Številke (posodobitve v stranski vrstici) – kličemo ob spremembah
+    // (Preprosto: ob nalaganju jih postavimo; bolj natančno bi zahtevalo transakcije.)
+
+    // ⚠️ Varnostne opombe (preberi!):
+    // - Obvezno nastavi Firestore Rules, da zaščitiš zasebne profile in sporočila.
+    //   Minimalni osnutek (prilagodi svojim potrebam):
+    //   rules_version = '2'; service cloud.firestore { match /databases/{db}/documents {
+    //     match /users/{uid} { allow read: if resource.data.publicProfile == true || request.auth != null && request.auth.uid == uid; allow write: if request.auth != null && request.auth.uid == uid; }
+    //     match /posts/{id} { allow read: if resource.data.public == true || request.auth != null; allow create: if request.auth != null; allow update, delete: if request.auth != null && request.auth.uid == resource.data.uid; }
+    //     match /stories/{id} { allow read: if true; allow write: if request.auth != null; }
+    //     match /friendRequests/{id} { allow read, write: if request.auth != null; }
+    //     match /friends/{id} { allow read, write: if request.auth != null; }
+    //     match /chats/{cid} { allow read, write: if request.auth != null && request.auth.uid in resource.data.members; match /messages/{mid} { allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(db)/documents/chats/$(cid)).data.members; } }
+    //   }}
+    // - Shranjevanje slik kot Base64 v Firestore je enostavno, vendar lahko poveča stroške in velikost dokumentov. Za produkcijo raje uporabi Firebase Storage.
+
   </script>
 </body>
 </html>
-
