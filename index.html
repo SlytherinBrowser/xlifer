@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>xlifer — social</title>
   <style>
-    :root{
-      --radius:16px;
-      --elev:0 10px 30px rgba(0,0,0,.12);
-      --speed:180ms;
-      --ring-1:#60a5fa; --ring-2:#a78bfa;
-    }
+    :root{ --radius:16px; --elev:0 10px 30px rgba(0,0,0,.12); --speed:180ms; --ring-1:#60a5fa; --ring-2:#a78bfa }
     /* THEMES */
     html[data-theme="breeze"]{--bg:#F7F8FA;--text:#0F172A;--card:#FFFFFF;--border:#E5E7EB;--primary:#2563EB;--accent:#22C55E;--ring-1:#60a5fa;--ring-2:#a78bfa}
     html[data-theme="midnight"]{--bg:#0B1020;--text:#E5E7EB;--card:#141A2A;--border:#1F2937;--primary:#60A5FA;--accent:#34D399;--ring-1:#22d3ee;--ring-2:#a78bfa}
@@ -48,8 +43,7 @@
     /* Stories */
     .stories{display:flex;gap:12px;overflow:auto;padding:8px 4px}
     .story{width:70px}
-    .story .circle{width:64px;height:64px;border-radius:50%;background:
-      conic-gradient(from 0deg, var(--ring-1), var(--ring-2));padding:3px}
+    .story .circle{width:64px;height:64px;border-radius:50%;background:conic-gradient(from 0deg, var(--ring-1), var(--ring-2));padding:3px}
     .story .inner{width:100%;height:100%;border-radius:50%;background:var(--bg);display:grid;place-items:center;overflow:hidden}
     .story img{width:100%;height:100%;object-fit:cover}
     .story .name{font-size:12px;text-align:center;margin-top:6px;opacity:.8}
@@ -66,14 +60,14 @@
     .actions{display:flex;gap:10px;margin-top:8px}
 
     /* Bottom Dock */
-    .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;width:70%;min-width:320px;max-width:900px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--elev);z-index:20}
-    .dock.collapsed{height:50px;overflow:hidden}
+    .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;width:70%;min-width:320px;max-width:900px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--elev);z-index:20;display:flex;flex-direction:column}
+    .dock.collapsed{height:5px;overflow:hidden}
     .dock .handle{height:10px;display:grid;place-items:center}
     .dock .handle span{width:60px;height:4px;border-radius:4px;background:var(--border)}
-    .dock .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px}
-    .dock .bar button{flex:1}
     .dock .content{max-height:0;overflow:auto;transition:max-height var(--speed)}
     .dock.expanded .content{max-height:80vh;padding:10px}
+    .dock .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-top:1px solid var(--border)}
+    .dock .bar button{flex:1}
 
     /* Dock panels */
     .panel{display:none}
@@ -103,10 +97,7 @@
     .dot{width:18px;height:18px;border-radius:50%}
 
     /* Responsive */
-    @media (max-width:520px){
-      .dock{width:92%}
-      header.appbar h1{font-size:16px}
-    }
+    @media (max-width:520px){ .dock{width:92%} header.appbar h1{font-size:16px} }
   </style>
 </head>
 <body>
@@ -180,32 +171,9 @@
     <section class="feed" id="feed"></section>
   </main>
 
-  <!-- Bottom Dock -->
+  <!-- Bottom Dock (CONTENT ABOVE THE BUTTONS) -->
   <div class="dock collapsed" id="dock">
     <div class="handle"><span></span></div>
-    <div class="bar" id="dockBarDefault">
-      <button data-action="chat">💬 Chat</button>
-      <button data-action="search">🔎 Iskalnik</button>
-      <button data-action="profile">👤 Profil</button>
-      <button data-action="settings">⚙️ Nastavitve</button>
-    </div>
-
-    <!-- Chat controls bar -->
-    <div class="bar hide" id="dockBarChat">
-      <button data-action="close">✖</button>
-      <button data-action="add-group">➕ Skupina</button>
-      <button data-action="autoseen">▶️ Autoseen</button>
-      <button data-action="notif-toggle">🔔 Obvestila</button>
-    </div>
-
-    <!-- Chat open bar (back + input + send/add image) -->
-    <div class="bar hide" id="dockBarChatOpen" style="gap:8px">
-      <button data-action="back">⬅</button>
-      <input id="chatInput" placeholder="Napiši sporočilo… (Enter=pošlji)" />
-      <button id="btnSend">Pošlji</button>
-      <button id="btnAddImage" class="hide">🖼️</button>
-      <input type="file" id="chatImagePicker" accept="image/*" class="hide" />
-    </div>
 
     <div class="content">
       <!-- Panels -->
@@ -292,41 +260,54 @@
         </div>
       </div>
     </div>
+
+    <!-- BARS AT THE BOTTOM OF THE DOCK -->
+    <div class="bar" id="dockBarDefault">
+      <button data-action="chat">💬 Chat</button>
+      <button data-action="search">🔎 Iskalnik</button>
+      <button data-action="profile">👤 Profil</button>
+      <button data-action="settings">⚙️ Nastavitve</button>
+    </div>
+
+    <div class="bar hide" id="dockBarChat">
+      <button data-action="close">✖</button>
+      <button data-action="add-group">➕ Skupina</button>
+      <button data-action="autoseen">▶️ Autoseen</button>
+      <button data-action="notif-toggle">🔔 Obvestila</button>
+    </div>
+
+    <div class="bar hide" id="dockBarChatOpen" style="gap:8px">
+      <button data-action="back">⬅</button>
+      <input id="chatInput" placeholder="Napiši sporočilo… (Enter=pošlji)" />
+      <button id="btnSend">Pošlji</button>
+      <button id="btnAddImage" class="hide">🖼️</button>
+      <input type="file" id="chatImagePicker" accept="image/*" class="hide" />
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
-  <!-- Firebase SDKs (fill config below) -->
+  <!-- Firebase SDKs (REAL DATA ONLY; no mock seed) -->
   <script type="module">
     // ======== FIREBASE BOOTSTRAP ========
-    // NOTE: Insert your Firebase project config here.
-    // The app works in mock/offline mode without it (for UI),
-    // but auth + database need real config.
     const firebaseConfig = {
-  apiKey: "AIzaSyAhA1s2iiJDMMeqoOrp1asJO1eha_R0ivg",
-  authDomain: "slychat1-b76db.firebaseapp.com",
-  databaseURL: "https://slychat1-b76db-default-rtdb.firebaseio.com",
-  projectId: "slychat1-b76db",
-  storageBucket: "slychat1-b76db.firebasestorage.app",
-  messagingSenderId: "508879069664",
-  appId: "1:508879069664:web:ce963d111297cd3480cb85",
-  measurementId: "G-D34XJNNGNQ"
-};
-    let fb = null; // holder for SDKs, if available
-    try{
-      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js');
-      const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, fetchSignInMethodsForEmail, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile, signOut } = await import('https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js');
-      const { getFirestore, doc, setDoc, getDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js');
-      const { getStorage, ref, uploadString, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js');
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const storage = getStorage(app);
-      fb = {app,auth,db,storage,onAuthStateChanged,signInWithEmailAndPassword,fetchSignInMethodsForEmail,sendPasswordResetEmail,createUserWithEmailAndPassword,updateProfile,doc,setDoc,getDoc,serverTimestamp,ref,uploadString,getDownloadURL,signOut};
-    }catch(e){
-      console.warn('Firebase SDK not loaded. Running in mock UI mode.', e);
-    }
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, fetchSignInMethodsForEmail, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, addDoc, query, where, orderBy, limit, onSnapshot, startAt, endAt } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+    import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
     // ======== DOM HELPERS ========
     const $ = sel => document.querySelector(sel);
@@ -340,14 +321,10 @@
     $$('#panelSettings .swatch').forEach(sw=> sw.addEventListener('click', async ()=>{
       const theme = sw.getAttribute('data-theme-pick');
       applyTheme(theme);
-      // persist in Firestore if logged in
-      if(fb?.auth?.currentUser){
-        const { doc, setDoc } = fb;
-        await setDoc(doc(fb.db, 'users', fb.auth.currentUser.uid), { settings:{ theme } }, { merge:true });
-      }
+      if(auth.currentUser){ await setDoc(doc(db, 'users', auth.currentUser.uid), { settings:{ theme } }, { merge:true }); }
     }));
 
-    // ======== AUTH FLOW ========
+    // ======== AUTH FLOW (progressive) ========
     const authView = $('#authView');
     const appbar = $('#appbar');
     const appMain = $('#app');
@@ -375,22 +352,15 @@
     const btnDoRegister = $('#btnDoRegister');
     const btnCancelRegister = $('#btnCancelRegister');
 
-    // Progressive login: check email → show password only if account exists
     btnCheckEmail.addEventListener('click', async ()=>{
       const email = loginEmail.value.trim();
       if(!email){ emailStatus.textContent='Vnesi e-mail.'; return; }
       emailStatus.textContent='Preverjam…';
-      if(!fb){ // mock
-        emailStatus.textContent='(MOCK) Nadaljuj z geslom.';
-        show(loginStepEmail,false); show(loginStepPassword,true); loginPassword.focus(); return;
-      }
-      const methods = await fb.fetchSignInMethodsForEmail(fb.auth, email);
+      const methods = await fetchSignInMethodsForEmail(auth, email);
       if(methods.includes('password')){
         emailStatus.textContent='Najden račun. Vnesi geslo.';
         show(loginStepEmail,false); show(loginStepPassword,true); loginPassword.focus();
-      }else{
-        emailStatus.textContent='Ta e-mail še ni registriran. Ustvari račun?';
-      }
+      }else{ emailStatus.textContent='Ta e-mail še ni registriran. Ustvari račun?'; }
     });
 
     btnBackToEmail.addEventListener('click', ()=>{ show(loginStepPassword,false); show(loginStepEmail,true); });
@@ -398,17 +368,13 @@
     btnDoLogin.addEventListener('click', async ()=>{
       const email = loginEmail.value.trim();
       const pass = loginPassword.value;
-      if(!fb){ toast('(MOCK) Prijavljen.'); return enterApp({uid:'mock', displayName:'Gost', photoURL:''}); }
-      try{
-        await fb.signInWithEmailAndPassword(fb.auth, email, pass);
-      }catch(e){ $('#passStatus').textContent = 'Napačno geslo ali napaka.'; }
+      try{ await signInWithEmailAndPassword(auth, email, pass); }catch(e){ $('#passStatus').textContent = 'Napačno geslo ali napaka.'; }
     });
 
     btnForgot.addEventListener('click', async ()=>{
       const email = loginEmail.value.trim();
       if(!email){ emailStatus.textContent='Vnesi e-mail za ponastavitev.'; return }
-      if(!fb){ toast('(MOCK) Poslana navodila, če račun obstaja.'); return }
-      await fb.sendPasswordResetEmail(fb.auth, email);
+      await sendPasswordResetEmail(auth, email);
       toast('Če e-mail obstaja, smo poslali navodila.');
     });
 
@@ -421,84 +387,75 @@
       const p1 = regPass1.value; const p2 = regPass2.value;
       if(!name||!email||!p1){ regStatus.textContent='Izpolni vsa polja.'; return; }
       if(p1!==p2){ regStatus.textContent='Gesli se ne ujemata.'; return; }
-      if(!fb){ toast('(MOCK) Ustvarjen račun.'); return enterApp({uid:'mock', displayName:name, photoURL:''}); }
       try{
-        const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, p1);
-        await fb.updateProfile(cred.user, { displayName:name });
-        // photo upload (optional)
+        const cred = await createUserWithEmailAndPassword(auth, email, p1);
+        await updateProfile(cred.user, { displayName:name });
         let photoURL = '';
         if(regPhoto.files[0]){
-          const file = regPhoto.files[0];
-          const b64 = await fileToBase64(file);
-          const r = fb.ref(fb.storage, `pfp/${cred.user.uid}.txt`); // store base64 string as text (as per requirement)
-          await fb.uploadString(r, b64, 'raw');
-          photoURL = await fb.getDownloadURL(r);
+          const b64 = await fileToBase64(regPhoto.files[0]);
+          const r = ref(storage, `pfp/${cred.user.uid}.txt`); // base64 as text
+          await uploadString(r, b64, 'raw');
+          photoURL = await getDownloadURL(r);
         }
-        await fb.setDoc(fb.doc(fb.db,'users',cred.user.uid),{
-          displayName:name, photoURL:photoURL||'', bio:'', createdAt: fb.serverTimestamp(), isPublic:true,
+        await setDoc(doc(db,'users',cred.user.uid),{
+          displayName:name, photoURL:photoURL||'', createdAt: serverTimestamp(), isPublic:true,
           about:{}, visibility:{ birthday:'friends', city:'public', relationship:'private' },
-          settings:{ theme: document.documentElement.getAttribute('data-theme') }
+          displayName_lc: name.toLowerCase(), settings:{ theme: document.documentElement.getAttribute('data-theme') }
         });
       }catch(e){ regStatus.textContent='Napaka pri registraciji.'; console.error(e); }
     });
 
-    // Auth state → enter app
-    if(fb){
-      fb.onAuthStateChanged(fb.auth, async (user)=>{
-        if(user){
-          enterApp(user);
-          // load theme preference
-          try{
-            const snap = await fb.getDoc(fb.doc(fb.db,'users',user.uid));
-            const data = snap.data();
-            if(data?.settings?.theme){ applyTheme(data.settings.theme); }
-          }catch{}
-        }else{
-          show(authView,true); show(appbar,false); show(appMain,false);
-        }
-      });
-    }
+    onAuthStateChanged(auth, async (user)=>{
+      if(user){ enterApp(user); } else { show(authView,true); show(appbar,false); show(appMain,false); }
+    });
 
-    function enterApp(user){
+    async function enterApp(user){
       show(authView,false); show(appbar,true); show(appMain,true);
       whoami.textContent = user.displayName? `Pozdravljen/-a, ${user.displayName}` : 'Prijavljen';
-      seedUI();
+      // load theme preference
+      try{ const snap = await getDoc(doc(db,'users',user.uid)); const data = snap.data(); if(data?.settings?.theme){ applyTheme(data.settings.theme); } }catch{}
+      subscribeStoriesAndFeed();
     }
 
-    // ======== FEED & STORIES (placeholders) ========
-    function seedUI(){
-      const stories = [
-        {name:'Samra', img:'https://picsum.photos/seed/samra/100'},
-        {name:'Valentina', img:'https://picsum.photos/seed/valentina/100'},
-        {name:'Darko', img:'https://picsum.photos/seed/darko/100'},
-        {name:'Matej', img:'https://picsum.photos/seed/matej/100'}
-      ];
-      const sEl = $('#stories'); sEl.innerHTML='';
-      stories.forEach(s=>{
-        const el = document.createElement('div'); el.className='story';
-        el.innerHTML = `<div class="circle"><div class="inner"><img alt="" src="${s.img}"/></div></div><div class="name">${s.name}</div>`;
-        sEl.appendChild(el);
+    // ======== FEED & STORIES (FIREBASE ONLY) ========
+    function subscribeStoriesAndFeed(){
+      const storiesEl = $('#stories'); storiesEl.innerHTML = '';
+      // stories (not filtered by friends for simplicity; add friend-based filter later)
+      const qStories = query(collection(db,'stories'), where('expiresAt','>', new Date()), orderBy('expiresAt','desc'), limit(30));
+      onSnapshot(qStories, (snap)=>{
+        storiesEl.innerHTML='';
+        snap.forEach(docu=>{
+          const s = docu.data();
+          const el = document.createElement('div'); el.className='story';
+          el.innerHTML = `<div class="circle"><div class="inner">${s.base64?`<img alt="" src="${s.base64}"/>`:''}</div></div><div class="name">${s.authorName||'Uporabnik'}</div>`;
+          storiesEl.appendChild(el);
+        });
       });
 
-      const feed = $('#feed'); feed.innerHTML='';
-      [1,2,3].forEach(i=>{
-        const el = document.createElement('article'); el.className='post card';
-        el.innerHTML = `
-          <div class="head">
-            <div class="avatar"><img src="https://picsum.photos/seed/user${i}/80" alt=""/></div>
-            <div>
-              <div style="font-weight:700">Javni Profil ${i}</div>
-              <div class="meta">pred ${i} h</div>
+      const feedEl = $('#feed'); feedEl.innerHTML = '';
+      const qFeed = query(collection(db,'posts'), where('visibility','==','public'), orderBy('createdAt','desc'), limit(30));
+      onSnapshot(qFeed, (snap)=>{
+        feedEl.innerHTML='';
+        snap.forEach(docu=>{
+          const p = docu.data();
+          const el = document.createElement('article'); el.className='post card';
+          el.innerHTML = `
+            <div class="head">
+              <div class="avatar">${p.authorPhoto?`<img src="${p.authorPhoto}" alt=""/>`:''}</div>
+              <div>
+                <div style="font-weight:700">${p.authorName||'Uporabnik'}</div>
+                <div class="meta">${(p.createdAt?.toDate?.()||new Date()).toLocaleString()}</div>
+              </div>
             </div>
-          </div>
-          <div class="media"><img src="https://picsum.photos/seed/post${i}/800/450" alt=""/></div>
-          <div class="actions">
-            <button>❤️ Všeč mi je</button>
-            <button>💬 Komentiraj</button>
-            <button class="shareBtn">📤 Pošlji v chat</button>
-          </div>`;
-        el.querySelector('.shareBtn').addEventListener('click', ()=>{ openDock('chat'); toast('Izberi chat za deljenje objave.'); });
-        feed.appendChild(el);
+            ${p.base64?`<div class="media"><img src="${p.base64}" alt=""/></div>`:''}
+            ${p.caption?`<div style="margin-top:6px">${p.caption}</div>`:''}
+            <div class="actions">
+              <button data-like="${docu.id}">❤️ Všeč mi je</button>
+              <button data-comment="${docu.id}">💬 Komentiraj</button>
+              <button data-share="${docu.id}">📤 Pošlji v chat</button>
+            </div>`;
+          feedEl.appendChild(el);
+        });
       });
     }
 
@@ -507,28 +464,16 @@
     const dockBarDefault = $('#dockBarDefault');
     const dockBarChat = $('#dockBarChat');
     const dockBarChatOpen = $('#dockBarChatOpen');
-    const panels = {
-      chat: $('#panelChat'),
-      search: $('#panelSearch'),
-      profile: $('#panelProfile'),
-      settings: $('#panelSettings')
-    };
+    const panels = { chat: $('#panelChat'), search: $('#panelSearch'), profile: $('#panelProfile'), settings: $('#panelSettings') };
 
-    dock.addEventListener('click', (e)=>{
-      if(e.target.closest('.handle')){ toggleDock(); }
-    });
-
-    dockBarDefault.addEventListener('click', (e)=>{
-      const action = e.target.getAttribute('data-action'); if(!action) return;
-      openDock(action);
-    });
-
+    dock.addEventListener('click', (e)=>{ if(e.target.closest('.handle')){ toggleDock(); } });
+    dockBarDefault.addEventListener('click', (e)=>{ const action = e.target.getAttribute('data-action'); if(!action) return; openDock(action); });
     dockBarChat.addEventListener('click', (e)=>{
       const action = e.target.getAttribute('data-action'); if(!action) return;
       if(action==='close') return collapseDock();
-      if(action==='add-group') return toast('Izberi prijatelje za skupino (TODO)');
+      if(action==='add-group') return createGroupFlow();
       if(action==='autoseen') return runAutoseen();
-      if(action==='notif-toggle') return toast('Obvestila preklopljena (TODO)');
+      if(action==='notif-toggle') return toggleNotifications();
     });
 
     $('#btnCloseSearch').addEventListener('click', collapseDock);
@@ -538,28 +483,18 @@
     function toggleDock(){ dock.classList.toggle('expanded'); dock.classList.toggle('collapsed'); }
     function expandDock(){ dock.classList.add('expanded'); dock.classList.remove('collapsed'); }
     function collapseDock(){ dock.classList.add('collapsed'); dock.classList.remove('expanded'); resetDockBars(); hidePanels(); }
-
     function resetDockBars(){ show(dockBarDefault,true); show(dockBarChat,false); show(dockBarChatOpen,false); }
-
     function hidePanels(){ Object.values(panels).forEach(p=>p.classList.remove('active')); }
 
     function openDock(panel){
       expandDock(); hidePanels(); resetDockBars();
-      if(panel==='chat'){
-        panels.chat.classList.add('active');
-        show(dockBarDefault,false); show(dockBarChat,true);
-        renderChatList();
-      }else if(panel==='search'){
-        panels.search.classList.add('active');
-      }else if(panel==='profile'){
-        panels.profile.classList.add('active');
-        renderMyProfile();
-      }else if(panel==='settings'){
-        panels.settings.classList.add('active');
-      }
+      if(panel==='chat'){ panels.chat.classList.add('active'); show(dockBarDefault,false); show(dockBarChat,true); renderChatList(); }
+      else if(panel==='search'){ panels.search.classList.add('active'); }
+      else if(panel==='profile'){ panels.profile.classList.add('active'); renderMyProfile(); }
+      else if(panel==='settings'){ panels.settings.classList.add('active'); }
     }
 
-    // ======== CHAT: list, open, send, enter/shift-enter ========
+    // ======== CHAT (FIREBASE, no mock) ========
     const chatListEl = $('#chatList');
     const chatWindow = $('#chatWindow');
     const messagesEl = $('#messages');
@@ -570,217 +505,162 @@
     const btnAddImage = $('#btnAddImage');
     const chatImagePicker = $('#chatImagePicker');
 
-    let conversations = [
-      {id:'c1', name:'Samra', unread:2, messages:[{me:false,text:'Hej!'}, {me:false,text:'Si za kavo?'}, {me:true,text:'Se slišiva.'}]},
-      {id:'c2', name:'Matej', unread:0, messages:[{me:true,text:'Gremo v soboto?'}]},
-      {id:'g1', name:'Lajf ekipa', unread:5, messages:[{me:false,text:'Plan za vikend?'}]}
-    ];
-    let currentConv = null;
+    let unsubConvos = null; let unsubMsgs = null; let currentConvId = null; let pendingImageB64 = null;
 
     function renderChatList(){
-      chatListEl.innerHTML='';
-      conversations.forEach(c=>{
-        const el = document.createElement('div'); el.className='item';
-        el.innerHTML = `<div class="avatar"></div><div class="name">${c.name}</div><div class="spacer"></div><div class="hint">${c.unread? (c.unread+ ' novo') : '—'}</div>`;
-        el.addEventListener('click', ()=> openChat(c.id));
-        chatListEl.appendChild(el);
+      show(chatWindow,false); chatListEl.innerHTML='<div class="hint">Nalagam pogovore…</div>';
+      if(unsubConvos) unsubConvos();
+      const qConvos = query(collection(db,'conversations'), where('members','array-contains', auth.currentUser.uid), orderBy('lastMessageAt','desc'), limit(50));
+      unsubConvos = onSnapshot(qConvos, (snap)=>{
+        chatListEl.innerHTML='';
+        if(snap.empty){ chatListEl.innerHTML = '<div class="hint">Ni pogovorov. Ustvari skupino ali začni nov chat.</div>'; }
+        snap.forEach(docu=>{
+          const c = docu.data();
+          const el = document.createElement('div'); el.className='item';
+          const name = c.type==='group' ? (c.title||'Skupina') : (c.memberNames?.find(m=>m.uid!==auth.currentUser.uid)?.name || 'Chat');
+          el.innerHTML = `<div class="avatar"></div><div class="name">${name}</div><div class="spacer"></div><div class="hint">${c.lastMessageAt? new Date(c.lastMessageAt.seconds*1000).toLocaleTimeString(): ''}</div>`;
+          el.addEventListener('click', ()=> openChat(docu.id, name));
+          chatListEl.appendChild(el);
+        });
       });
-      show(chatWindow,false);
     }
 
-    function openChat(id){
-      currentConv = conversations.find(c=>c.id===id);
-      if(!currentConv) return;
-      chatTitle.textContent = currentConv.name;
-      chatHint.textContent = '';
-      messagesEl.innerHTML='';
-      currentConv.messages.forEach(m=>{
-        const b = document.createElement('div'); b.className='bubble'+(m.me?' me':''); b.textContent = m.text || (m.image? '[slika]' : '');
-        messagesEl.appendChild(b);
+    function openChat(convId, title){
+      currentConvId = convId; chatTitle.textContent = title||'Chat'; chatHint.textContent = '';
+      messagesEl.innerHTML=''; show(chatWindow,true); show(dockBarChat,false); show(dockBarChatOpen,true);
+      if(unsubMsgs) unsubMsgs();
+      const qMsgs = query(collection(db,'conversations',convId,'messages'), orderBy('createdAt','asc'), limit(500));
+      unsubMsgs = onSnapshot(qMsgs, (snap)=>{
+        messagesEl.innerHTML='';
+        snap.forEach(docu=>{
+          const m = docu.data();
+          const b = document.createElement('div'); b.className='bubble'+(m.authorId===auth.currentUser.uid?' me':'');
+          b.textContent = m.text || (m.base64? '[slika]':'');
+          if(m.base64 && !m.text){ b.innerHTML = `<img src="${m.base64}" alt="slika" style="max-width:100%"/>`; }
+          messagesEl.appendChild(b);
+        });
+        messagesEl.scrollTop = messagesEl.scrollHeight;
       });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      // switch bars
-      show(dockBarChat,false); show(dockBarChatOpen,true);
-      // clear unread
-      currentConv.unread = 0; renderChatList();
     }
 
-    // Enter to send; Shift+Enter = newline
-    chatInput.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); quickSend(); }
-    });
-
-    function quickSend(){
-      const txt = chatInput.value.trim();
-      if(!txt && !pendingImageB64){ return; }
-      pushMessage({ text: txt || '', image: pendingImageB64||null });
-      chatInput.value=''; pendingImageB64=null; updateSendButtons();
-    }
-
-    btnSend.addEventListener('click', ()=>{
-      if(!chatInput.value.trim() && !pendingImageB64){ return; }
-      // show schedule/temporary options
-      const choice = window.prompt('Pošiljanje: vpiši "now" (takoj), "schedule:YYYY-MM-DD HH:MM" ali "temp:minutes"', 'now');
-      if(!choice) return;
-      if(choice.startsWith('schedule:')){
-        const when = choice.replace('schedule:','');
-        pushMessage({ text: chatInput.value.trim(), image: pendingImageB64||null, scheduledFor: when });
-      }else if(choice.startsWith('temp:')){
-        const mins = parseInt(choice.replace('temp:',''),10)||10;
-        const expiresAt = Date.now() + mins*60000;
-        pushMessage({ text: chatInput.value.trim(), image: pendingImageB64||null, expiresAt });
-      }else{ quickSend(); }
-    });
-
-    let pendingImageB64 = null;
-    function updateSendButtons(){
-      const empty = !chatInput.value.trim() && !pendingImageB64;
-      show(btnAddImage, empty);
-      show(btnSend, !empty);
-    }
+    chatInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); quickSend(); } });
+    function updateSendButtons(){ const empty = !chatInput.value.trim() && !pendingImageB64; show(btnAddImage, empty); show(btnSend, !empty); }
     chatInput.addEventListener('input', updateSendButtons);
+    $('#dockBarChatOpen').addEventListener('click', (e)=>{ if(e.target.getAttribute('data-action')==='back'){ show(dockBarChatOpen,false); show(dockBarChat,true); show(chatWindow,false); if(unsubMsgs){unsubMsgs(); unsubMsgs=null;} } });
     $('#btnAddImage').addEventListener('click', ()=> chatImagePicker.click());
-    chatImagePicker.addEventListener('change', async ()=>{
-      const f = chatImagePicker.files[0]; if(!f) return;
-      pendingImageB64 = await fileToBase64(f); // full base64 as requested
-      updateSendButtons(); toast('Slika pripravljena za pošiljanje.');
-    });
+    chatImagePicker.addEventListener('change', async ()=>{ const f = chatImagePicker.files[0]; if(!f) return; pendingImageB64 = await fileToBase64(f); updateSendButtons(); toast('Slika pripravljena za pošiljanje.'); });
+    btnSend.addEventListener('click', sendWithOptions);
 
-    function pushMessage({text='', image=null, scheduledFor=null, expiresAt=null}){
-      if(!currentConv){ return; }
-      const msg = { me:true, text, image, scheduledFor, expiresAt };
-      currentConv.messages.push(msg);
-      const b = document.createElement('div'); b.className='bubble me'; b.textContent = text || '[slika]';
-      messagesEl.appendChild(b); messagesEl.scrollTop = messagesEl.scrollHeight;
-      // TODO: write to Firestore: conversations/{id}/messages/{msgId}
+    async function quickSend(){ if(!currentConvId) return; const txt = chatInput.value.trim(); if(!txt && !pendingImageB64) return; await pushMessage({ text: txt||'', base64: pendingImageB64||null }); chatInput.value=''; pendingImageB64=null; updateSendButtons(); }
+
+    async function sendWithOptions(){ if(!currentConvId) return; if(!chatInput.value.trim() && !pendingImageB64) return; const choice = window.prompt('Pošiljanje: vpiši "now" (takoj), "schedule:YYYY-MM-DD HH:MM" ali "temp:minutes"', 'now'); if(!choice) return; if(choice.startsWith('schedule:')){ const when = choice.replace('schedule:',''); await pushMessage({ text: chatInput.value.trim(), base64: pendingImageB64||null, scheduledFor: when }); } else if(choice.startsWith('temp:')){ const mins = parseInt(choice.replace('temp:',''),10)||10; const expiresAt = Date.now() + mins*60000; await pushMessage({ text: chatInput.value.trim(), base64: pendingImageB64||null, expiresAt }); } else { await quickSend(); } }
+
+    async function pushMessage({text='', base64=null, scheduledFor=null, expiresAt=null}){
+      const convRef = doc(db,'conversations', currentConvId);
+      await addDoc(collection(convRef,'messages'), { authorId: auth.currentUser.uid, text, base64, createdAt: serverTimestamp(), scheduledFor: scheduledFor||null, expiresAt: expiresAt||null });
+      await updateDoc(convRef, { lastMessageAt: serverTimestamp() });
     }
 
-    function runAutoseen(){
-      // Pick convo with unread oldest first; here mock order by index
-      const target = conversations.find(c=>c.unread>0) || conversations[0];
-      if(!target){ toast('Ni neprebranih.'); return; }
-      openChat(target.id);
-      chatHint.textContent = 'Autoseen: zapri za naslednji chat';
-      // When user clicks back, open next
-    }
+    function createGroupFlow(){ toast('Izberi prijatelje (implementiraj v iskalniku)'); }
+    function runAutoseen(){ toast('Autoseen bo šel po pogovorih z neprebranimi (TODO: per-user read markers).'); }
+    function toggleNotifications(){ toast('Preklop obvestil (FCM) – TODO'); }
 
-    // Back from open chat
-    $('#dockBarChatOpen').addEventListener('click', (e)=>{
-      if(e.target.getAttribute('data-action')==='back'){
-        const wasAutoseen = chatHint.textContent.includes('Autoseen');
-        show(dockBarChatOpen,false); show(dockBarChat,true); show(chatWindow,false);
-        if(wasAutoseen){
-          // Mark current as seen, open next with unread if any
-          const next = conversations.find(c=>c.unread>0 && c!==currentConv);
-          if(next){ openChat(next.id); }
-        }
-      }
-    });
-
-    // ======== SEARCH (live) – mock UI ========
+    // ======== SEARCH (FIREBASE) ========
     const searchInput = $('#searchInput');
     const searchResults = $('#searchResults');
     const profilePreview = $('#profilePreview');
 
-    const allUsers = [
-      {uid:'u1', name:'Samra', bio:'Hej!'},
-      {uid:'u2', name:'Valentina', bio:'Pozdrav!'},
-      {uid:'u3', name:'Darko', bio:'Na vezi.'},
-      {uid:'u4', name:'Matej', bio:'Živjo.'}
-    ];
-
     searchInput.addEventListener('input', ()=>{
-      const q = searchInput.value.toLowerCase();
-      const found = allUsers.filter(u=> u.name.toLowerCase().startsWith(q));
-      renderSearch(found);
-    });
-    $('#btnWhoAddedMe').addEventListener('click', ()=>{
-      // TODO: load friend requests from Firestore
-      toast('Uporabniki, ki so te dodali (TODO)');
-    });
-
-    function renderSearch(list){
-      searchResults.innerHTML=''; profilePreview.classList.add('hide');
-      list.forEach(u=>{
-        const el = document.createElement('div'); el.className='item';
-        el.innerHTML = `<div class="avatar"></div><div class="name">${u.name}</div>`;
-        el.addEventListener('click', ()=> showProfilePreview(u));
-        searchResults.appendChild(el);
+      const qtxt = searchInput.value.trim().toLowerCase();
+      if(!qtxt){ searchResults.innerHTML=''; show(profilePreview,false); return; }
+      const qUsers = query(collection(db,'users'), orderBy('displayName_lc'), startAt(qtxt), endAt(qtxt+''), limit(20));
+      onSnapshot(qUsers, (snap)=>{
+        searchResults.innerHTML=''; show(profilePreview,false);
+        snap.forEach(docu=>{
+          const u = docu.data();
+          const el = document.createElement('div'); el.className='item';
+          el.innerHTML = `<div class="avatar">${u.photoURL?`<img src="${u.photoURL}"/>`:''}</div><div class="name">${u.displayName||'Uporabnik'}</div>`;
+          el.addEventListener('click', ()=> showProfilePreview(docu.id, u));
+          searchResults.appendChild(el);
+        });
       });
-    }
+    });
 
-    function showProfilePreview(user){
+    $('#btnWhoAddedMe').addEventListener('click', ()=>{ toast('Seznam uporabnikov, ki so te dodali (TODO: friendships).'); });
+
+    function showProfilePreview(uid, user){
       profilePreview.innerHTML = `
         <div class="row" style="align-items:center;gap:10px">
-          <div class="avatar"></div>
-          <div style="flex:1">
-            <div style="font-weight:700">${user.name}</div>
-            <div class="hint">${user.bio||''}</div>
-          </div>
+          <div class="avatar">${user.photoURL?`<img src="${user.photoURL}"/>`:''}</div>
+          <div style="flex:1"><div style="font-weight:700">${user.displayName||'Uporabnik'}</div><div class="hint">${user.bio||''}</div></div>
           <button id="btnAddFriend">Dodaj</button>
         </div>
         <div class="divider"></div>
-        <div class="stack">
-          <div style="opacity:.7">Objave (preview)</div>
-          <div class="row">
-            <div class="card" style="width:100px;height:80px"></div>
-            <div class="card" style="width:100px;height:80px"></div>
-            <div class="card" style="width:100px;height:80px"></div>
-          </div>
-        </div>`;
-      profilePreview.classList.remove('hide');
-      profilePreview.querySelector('#btnAddFriend').addEventListener('click', ()=>{
-        toast(`Poslana prošnja za prijateljstvo: ${user.name}`);
-        // TODO: write friendships request in Firestore
-      });
+        <div class="stack"><div style="opacity:.7">Objave</div><div class="row"><div class="card" style="width:100px;height:80px"></div><div class="card" style="width:100px;height:80px"></div><div class="card" style="width:100px;height:80px"></div></div></div>`;
+      show(profilePreview,true);
+      profilePreview.querySelector('#btnAddFriend').addEventListener('click', async ()=>{ toast(`Poslana prošnja za prijateljstvo: ${user.displayName||uid}`); /* TODO friendships */ });
     }
 
     // ======== PROFILE ========
     const myProfile = $('#myProfile');
     const editProfile = $('#editProfile');
-    $('#btnEditProfile').addEventListener('click', ()=>{ show(editProfile,true); });
+    $('#btnEditProfile').addEventListener('click', ()=>{ show(editProfile,true); fillEditProfile(); });
     $('#btnCancelEdit').addEventListener('click', ()=>{ show(editProfile,false); });
-    $('#btnTogglePublic').addEventListener('click', async ()=>{
-      toast('Preklop javno/zasebno (TODO)');
-      // TODO: toggle users/{uid}.isPublic
-    });
+    $('#btnTogglePublic').addEventListener('click', async ()=>{ const uref = doc(db,'users',auth.currentUser.uid); const snap = await getDoc(uref); const cur = !!snap.data()?.isPublic; await updateDoc(uref,{ isPublic: !cur }); toast(`Profil ${!cur? 'javno':'zasebno'}`); renderMyProfile(); });
     $('#btnSaveProfile').addEventListener('click', async ()=>{
-      toast('Profil shranjen (lokalno).'); show(editProfile,false);
-      // TODO: persist to Firestore, upload base64 photo to Storage as needed
+      const name = $('#epName').value.trim();
+      const bio = $('#epBio').value.trim();
+      const birthday = $('#epBirthday').value||null;
+      const city = $('#epCity').value.trim();
+      const rel = $('#epRel').value.trim();
+      const vis = { birthday: $('#visBirthday').value, city: $('#visCity').value, relationship: $('#visRel').value };
+      let photoURL = null;
+      const file = $('#epPhoto').files[0];
+      if(file){ const b64 = await fileToBase64(file); const r = ref(storage, `pfp/${auth.currentUser.uid}.txt`); await uploadString(r, b64, 'raw'); photoURL = await getDownloadURL(r); }
+      await setDoc(doc(db,'users',auth.currentUser.uid), {
+        displayName: name || auth.currentUser.displayName || '', bio, about:{birthday, city, relationship:rel}, visibility: vis,
+        ...(photoURL? { photoURL } : {})
+      }, { merge:true });
+      toast('Profil shranjen.'); show(editProfile,false); renderMyProfile();
     });
 
-    function renderMyProfile(){
+    async function renderMyProfile(){
+      const snap = await getDoc(doc(db,'users',auth.currentUser.uid));
+      const u = snap.data()||{};
       myProfile.innerHTML = `
         <div class="row" style="align-items:center;gap:10px">
-          <div class="avatar"><img src="https://picsum.photos/seed/me/96" alt=""/></div>
+          <div class="avatar">${u.photoURL?`<img src="${u.photoURL}" alt=""/>`:''}</div>
           <div>
-            <div style="font-weight:800">Moj profil</div>
-            <div class="hint">Status: javno</div>
+            <div style="font-weight:800">${u.displayName||'Moj profil'}</div>
+            <div class="hint">Status: ${u.isPublic? 'javno':'zasebno'}</div>
           </div>
         </div>
         <div class="divider"></div>
         <div class="stack">
-          <div><strong>Opis</strong><div class="hint">Nič še ni zapisano.</div></div>
+          <div><strong>Opis</strong><div class="hint">${u.bio||'—'}</div></div>
           <div class="row" style="gap:10px">
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Rojstvo</div>—</div>
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Kraj</div>—</div>
-            <div class="card" style="flex:1;padding:10px"><div class="hint">Razmerje</div>—</div>
+            <div class="card" style="flex:1;padding:10px"><div class="hint">Rojstvo</div>${u?.about?.birthday||'—'}</div>
+            <div class="card" style="flex:1;padding:10px"><div class="hint">Kraj</div>${u?.about?.city||'—'}</div>
+            <div class="card" style="flex:1;padding:10px"><div class="hint">Razmerje</div>${u?.about?.relationship||'—'}</div>
           </div>
         </div>`;
     }
 
-    // ======== UTIL ========
-    function fileToBase64(file){
-      return new Promise((res,rej)=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+    async function fillEditProfile(){
+      const snap = await getDoc(doc(db,'users',auth.currentUser.uid));
+      const u = snap.data()||{};
+      $('#epName').value = u.displayName||'';
+      $('#epBio').value = u.bio||'';
+      $('#epBirthday').value = u?.about?.birthday||'';
+      $('#epCity').value = u?.about?.city||'';
+      $('#epRel').value = u?.about?.relationship||'';
+      $('#visBirthday').value = u?.visibility?.birthday||'friends';
+      $('#visCity').value = u?.visibility?.city||'public';
+      $('#visRel').value = u?.visibility?.relationship||'private';
     }
 
-    // ======== TOAST OVERLAY TRIGGERS (mock) ========
-    // Example: show toast when a new message arrives while dock collapsed
-    setTimeout(()=>{ if(dock.classList.contains('collapsed')) toast('Novo sporočilo · Samra'); }, 4000);
-
+    // ======== UTIL ========
+    function fileToBase64(file){ return new Promise((res,rej)=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
   </script>
 </body>
-
 </html>
-
-
