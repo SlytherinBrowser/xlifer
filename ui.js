@@ -10,7 +10,7 @@ if(themeSel){ themeSel.value = getTheme(); themeSel.addEventListener('change', e
 export function fileToBase64(file){
   return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
 }
-export function escapeHtml(s){ return s?.replace(/[&<>'"]/g, c=>({"&":"&amp;","<":"&lt;","</":"","\">":"&quot;"}[c]))||'' }
+export function escapeHtml(s){ return s?.replace(/[&<>\'\"]/g, c=>(({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"})[c]))||'' }
 export function timeago(ts){
   const d = ts?.toDate ? ts.toDate() : (ts instanceof Date? ts : new Date(ts));
   const diff = Math.floor((Date.now()-d.getTime())/1000);
