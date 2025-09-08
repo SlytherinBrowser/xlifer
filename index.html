@@ -32,9 +32,6 @@ const firebaseConfig = {
   appId: "1:508879069664:web:ce963d111297cd3480cb85",
   measurementId: "G-D34XJNNGNQ"
 };
-
-    // ⚠️ BREZ tega XLifer ne bo deloval. Pridobi vrednosti iz Firebase Console > Project Settings.
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import {
       getAuth,
@@ -88,8 +85,6 @@ const firebaseConfig = {
     const signOutBtn = document.getElementById('signout-btn');
 
     const dock = document.getElementById('dock');
-    const dockButtons = document.getElementById('dock-buttons');
-    const dockPanel = document.getElementById('dock-panel');
     const dockTitle = document.getElementById('dock-title');
     const dockContent = document.getElementById('dock-content');
 
@@ -117,7 +112,6 @@ const firebaseConfig = {
     }
 
     // ------- POMOŽNE FUNKCIJE -------
-    const q = sel => document.querySelector(sel);
     const el = (tag, cls, txt) => {
       const e = document.createElement(tag);
       if (cls) e.className = cls;
@@ -131,22 +125,54 @@ const firebaseConfig = {
       setTimeout(() => { t.classList.remove('show'); t.remove(); }, 3000);
     }
 
-    // ------- TEMA -------
+    // ------- TEME -------
     const THEMES = [
-      // 8 tem, definirane kot CSS var v :root in .theme-X
-      'theme-default', 'theme-ocean', 'theme-sunset', 'theme-forest',
-      'theme-grape', 'theme-coal', 'theme-snow', 'theme-lime'
+      { id:'theme-modern',   label:'Moderna' },
+      { id:'theme-glass',    label:'Steklena' },
+      { id:'theme-dark',     label:'Temna' },
+      { id:'theme-light',    label:'Svetla' },
+      { id:'theme-colorful', label:'Barvna' },
+      { id:'theme-neon',     label:'Neon' },
+      { id:'theme-nature',   label:'Naravna' },
+      { id:'theme-retro',    label:'Retro' }
     ];
-    function applyTheme(theme) {
-      document.documentElement.classList.remove(...THEMES);
-      document.documentElement.classList.add(theme);
-      localStorage.setItem('xlifer-theme', theme);
+
+    function applyTheme(themeId) {
+      // odstrani vse theme-* razrede
+      document.documentElement.className = '';
+      document.documentElement.classList.add(themeId);
+      localStorage.setItem('xlifer-theme', themeId);
     }
-    function cycleTheme() {
-      const cur = localStorage.getItem('xlifer-theme') || THEMES[0];
-      const idx = THEMES.indexOf(cur);
-      const next = THEMES[(idx + 1) % THEMES.length];
-      applyTheme(next);
+
+    function buildThemePanel(container) {
+      const back = el('button','ghost','Nazaj');
+      back.addEventListener('click', () => dock.classList.remove('open'));
+      container.appendChild(back);
+
+      const grid = el('div','theme-grid');
+      container.appendChild(grid);
+
+      const current = localStorage.getItem('xlifer-theme') || 'theme-modern';
+
+      THEMES.forEach(t => {
+        const item = el('button','theme-item');
+        item.setAttribute('data-theme', t.id);
+        item.innerHTML = `
+          <div class="theme-swatch">
+            <span class="swatch-a"></span>
+            <span class="swatch-b"></span>
+            <span class="swatch-c"></span>
+          </div>
+          <div class="theme-label">${t.label}</div>
+        `;
+        if (current === t.id) item.classList.add('active');
+        item.addEventListener('click', () => {
+          applyTheme(t.id);
+          grid.querySelectorAll('.theme-item').forEach(b=>b.classList.remove('active'));
+          item.classList.add('active');
+        });
+        grid.appendChild(item);
+      });
     }
 
     // ------- AVTENTIKACIJA -------
@@ -222,10 +248,10 @@ const firebaseConfig = {
     }
     function closePanel() { dock.classList.remove('open'); }
 
-    btnFriends.addEventListener('click', () => openPanel('Seznam prijateljev', buildFriendsPanel));
-    btnSearch.addEventListener('click', () => openPanel('Iskanje prijateljev', buildSearchPanel));
-    btnProfile.addEventListener('click', () => openPanel('Moj profil', buildProfilePanel));
-    btnThemes.addEventListener('click', () => { cycleTheme(); });
+    document.getElementById('btn-themes').addEventListener('click', () => openPanel('Izberi temo', buildThemePanel));
+    document.getElementById('btn-friends').addEventListener('click', () => openPanel('Seznam prijateljev', buildFriendsPanel));
+    document.getElementById('btn-search').addEventListener('click', () => openPanel('Iskanje prijateljev', buildSearchPanel));
+    document.getElementById('btn-profile').addEventListener('click', () => openPanel('Moj profil', buildProfilePanel));
 
     // ------- PRIJATELJI -------
     async function loadFriends() {
@@ -399,8 +425,10 @@ const firebaseConfig = {
 
       const aRef = doc(db, 'users', req.from, 'friends', req.to);
       const bRef = doc(db, 'users', req.to, 'friends', req.from);
-      batch.set(aRef, { uid: req.to, name: req.toName, email: (await getDoc(doc(db,'users',req.to))).data().email });
-      batch.set(bRef, { uid: req.from, name: req.fromName, email: (await getDoc(doc(db,'users',req.from))).data().email });
+      const toDoc = await getDoc(doc(db,'users',req.to));
+      const fromDoc = await getDoc(doc(db,'users',req.from));
+      batch.set(aRef, { uid: req.to, name: req.toName, email: toDoc.data().email });
+      batch.set(bRef, { uid: req.from, name: req.fromName, email: fromDoc.data().email });
 
       await batch.commit();
       toast('Prijatelj potrjen.');
@@ -416,7 +444,7 @@ const firebaseConfig = {
     // ------- PROFIL -------
     function buildProfilePanel(container) {
       const user = auth.currentUser; if (!user) return;
-      const back = el('button','ghost','Nazaj'); back.addEventListener('click', closePanel);
+      const back = el('button','ghost','Nazaj'); back.addEventListener('click', () => dock.classList.remove('open'));
       container.appendChild(back);
 
       const card = el('div','card');
@@ -424,7 +452,6 @@ const firebaseConfig = {
       const email = el('div','sub', user.email);
       card.appendChild(name); card.appendChild(email);
 
-      // pridobi datum rojstva iz Firestore
       (async () => {
         const udoc = await getDoc(doc(db,'users', user.uid));
         const dob = udoc.exists()? (udoc.data().dob||'Ni podatka') : 'Ni podatka';
@@ -441,99 +468,140 @@ const firebaseConfig = {
       container.appendChild(card);
     }
 
-    // ------- INIT THEMA & UI -------
-    applyTheme(localStorage.getItem('xlifer-theme') || THEMES[0]);
-
-    // Prikaži ime polje v prijavi (neobvezno za Firebase, a ga hranimo zaradi tvoje zahteve)
+    // ------- INIT THEME & UI -------
+    applyTheme(localStorage.getItem('xlifer-theme') || 'theme-modern');
     loginName.addEventListener('input', () => {/* polje obstaja vizualno */});
 
   </script>
 
   <style>
     :root{
-.theme-coal:root{ --bg:#0b0b0b; --fg:#f1f1f1; --muted:#bdbdbd; --primary:#888; --card:#111; --dock:#0d0d0d; }
-.theme-snow:root{ --bg:#fafafa; --fg:#0b0f14; --muted:#4b5868; --primary:#0057ff; --card:#ffffff; --dock:#f4f6f8; }
-.theme-lime:root{ --primary:#9acd32; --card:#101812; --dock:#0c120d; }
+      /* fallback */
+      --bg:#0e1116; --fg:#e6edf3; --muted:#9fb3c8; --primary:#4dabf7; --secondary:#556581; --dock:#10151d; --card:#131a24; --me:#2b8a3e; --them:#2b4c7e;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
 
+    /* NOV NABOR TEM */
+    .theme-modern:root{ --bg:#fdfdfd; --fg:#222; --muted:#666; --primary:#0066ff; --secondary:#dfe3eb; --dock:#f5f7fb; --card:#ffffff; }
+    .theme-glass:root{
+      --bg:linear-gradient(135deg,#0b0f14 0%,#1a2233 100%);
+      --fg:#f2f7ff; --muted:#c7d2e0; --primary:#60a5fa; --secondary:rgba(255,255,255,.14);
+      --card:rgba(255,255,255,.06); --dock:rgba(255,255,255,.08);
+      --shadow:0 20px 50px rgba(0,0,0,.35); --radius:20px;
+    }
+    .theme-dark:root{ --bg:#090b10; --fg:#e5e7eb; --muted:#9aa5b1; --primary:#ff0066; --secondary:#202532; --card:#0f141c; --dock:#0b0f16; }
+    .theme-light:root{ --bg:#f7f9fc; --fg:#0b1220; --muted:#526179; --primary:#2563eb; --secondary:#e8eef7; --card:#ffffff; --dock:#eef3f9; }
+    .theme-colorful:root{ --bg:#0e0a1f; --fg:#f6f7fb; --muted:#c9c6e2; --primary:#ffcc00; --secondary:#261c3e; --card:#1a1530; --dock:#140f29; }
+    .theme-neon:root{ --bg:#05060a; --fg:#eaffff; --muted:#8dd3d3; --primary:#00f0ff; --secondary:#0b0f14; --card:#081018; --dock:#060b12; }
+    .theme-nature:root{ --bg:#f0f7f1; --fg:#1b2d1d; --muted:#4d6b50; --primary:#2e8b57; --secondary:#a3cfa8; --dock:#dcefe0; --card:#ffffff; }
+    .theme-retro:root{ --bg:#fff8e7; --fg:#2e1f0f; --muted:#7a5c3a; --primary:#d35400; --secondary:#eabf7f; --dock:#f7e6c4; --card:#fff2d5; }
 
-html, body { height:100%; }
-body{
-margin:0; background:var(--bg); color:var(--fg); font: 15px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-}
-*{ box-sizing: border-box; }
+    .theme-glass #dock, .theme-glass .auth-card, .theme-glass .card, .theme-glass .messages{
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.12);
+    }
 
+    html, body { height:100%; }
+    body{ margin:0; background:var(--bg); color:var(--fg); font: 15px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    *{ box-sizing: border-box; }
 
-/* AUTH VIEW */
-#auth-view{
-display:grid; place-items:center; gap:24px; min-height:100dvh; padding:24px;
-}
-.auth-card{ width:min(560px, 100%); background:var(--card); padding:20px; border-radius:var(--radius); box-shadow:var(--shadow); }
-.grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
-input{ width:100%; padding:10px 12px; border:1px solid #0000; border-radius:12px; background:#0f1723; color:var(--fg); outline:none; }
-input:focus{ border-color: var(--primary); }
-.row{ display:flex; align-items:center; gap:10px; justify-content:space-between; }
-.actions{ display:flex; gap:8px; }
-.btn, button{ cursor:pointer; border:none; border-radius:12px; padding:10px 14px; }
-.primary{ background:var(--primary); color:#fff; }
-.secondary{ background:#223046; color:#fff; }
-.ghost{ background:transparent; color:var(--fg); border:1px solid #2a3446; }
-.muted{ color:var(--muted); }
-.big{ font-weight:700; font-size:18px; }
+    /* AUTH VIEW */
+    #auth-view{ display:grid; place-items:center; gap:24px; min-height:100dvh; padding:24px; }
+    .auth-card{ width:min(560px, 100%); background:var(--card); padding:20px; border-radius:var(--radius); box-shadow:var(--shadow); }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+    input{ width:100%; padding:10px 12px; border:1px solid #0000; border-radius:12px; background:#0f1723; color:var(--fg); outline:none; }
+    input:focus{ border-color: var(--primary); }
+    .row{ display:flex; align-items:center; gap:10px; justify-content:space-between; }
+    .actions{ display:flex; gap:8px; }
+    .btn, button{ cursor:pointer; border:none; border-radius:12px; padding:10px 14px; }
+    .primary{ background:var(--primary); color:#fff; }
+    .secondary{ background:var(--secondary); color:#fff; }
+    .ghost{ background:transparent; color:var(--fg); border:1px solid #2a3446; }
+    .muted{ color:var(--muted); }
+    .big{ font-weight:700; font-size:18px; }
 
+    a{ color:var(--primary); text-decoration:none; }
 
-a{ color:var(--primary); text-decoration:none; }
+    /* APP VIEW */
+    #app-view{ display:none; height:100dvh; }
+    #map{ height:100%; width:100%; }
 
+    /* DOCK */
+    #dock{ position:fixed; left:50%; transform:translateX(-50%); bottom:30px; width:90%; background:var(--dock); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; transition:height .25s ease, padding .25s ease; height: 40px; z-index:999; display:flex; flex-direction:column; }
+    #dock.open{ height: min(90vh, 620px); }
+    #dock-buttons{ display:flex; gap:8px; padding:6px; justify-content:center; align-items:center; flex-wrap:wrap; }
+    #dock-buttons button{ height:32px; padding:0 12px; }
 
-/* APP VIEW */
-#app-view{ display:none; height:100dvh; }
-#map{ height:100%; width:100%; }
+    #dock-panel{ margin-top:auto; display:flex; flex-direction:column; height:100%; }
+    #dock-header{ padding:10px 12px; border-top:1px solid #223046; display:flex; align-items:center; justify-content:space-between; }
+    #dock-title{ font-weight:700; }
+    #dock-content{ padding:12px; overflow:auto; }
 
+    .list{ display:flex; flex-direction:column; gap:10px; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:14px; }
+    .title{ font-weight:600; }
+    .sub{ color:var(--muted); font-size:12px; }
 
-/* DOCK */
-#dock{
-position:fixed; left:50%; transform:translateX(-50%); z-index:999;
-bottom:16px; width:90%; background:var(--dock); border-radius:20px; box-shadow:var(--shadow);
-overflow:hidden; transition:height .25s ease, padding .25s ease; height: 40px; display:flex; flex-direction:column;
-}
-#dock.open{ height: min(90vh, 620px); }
-#dock-buttons{ display:flex; gap:8px; padding:6px; justify-content:center; align-items:center; flex-wrap:wrap; }
-#dock-buttons button{ height:32px; padding:0 12px; }
+    .messages{ display:flex; flex-direction:column; gap:6px; max-height:40vh; overflow:auto; background:#0f1723; padding:12px; border-radius:12px; }
+    .bubble{ max-width:75%; padding:8px 10px; border-radius:12px; }
+    .bubble.me{ background:var(--me); align-self:flex-end; color:#fff; }
+    .bubble.them{ background:var(--them); align-self:flex-start; color:#fff; }
+    .input-wrap{ display:flex; gap:8px; margin-top:8px; }
+    .input-wrap input{ flex:1; }
 
+    .search-head{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .search-input{ flex:1; }
 
-#dock-panel{ margin-top:auto; display:flex; flex-direction:column; height:100%; }
-#dock-header{ padding:10px 12px; border-top:1px solid #223046; display:flex; align-items:center; justify-content:space-between; }
-#dock-title{ font-weight:700; }
-#dock-content{ padding:12px; overflow:auto; }
+    /* Theme selector */
+    .theme-grid{ margin-top:10px; display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; }
+    .theme-item{ cursor:pointer; border:1px solid #2a3446; border-radius:12px; background:var(--card); padding:10px; text-align:left; display:flex; align-items:center; gap:10px; }
+    .theme-item.active{ outline:2px solid var(--primary); }
+    .theme-swatch{ display:grid; grid-template-columns:repeat(3,16px); gap:4px; }
+    .theme-swatch .swatch-a, .theme-swatch .swatch-b, .theme-swatch .swatch-c{ width:16px; height:16px; border-radius:4px; background:#ccc; }
+    /* Dinamični predogledi – uporabimo CSS per-teme */
+    .theme-modern .theme-item[data-theme="theme-modern"] .swatch-a{ background:#0066ff; }
+    .theme-modern .theme-item[data-theme="theme-modern"] .swatch-b{ background:#f5f7fb; }
+    .theme-modern .theme-item[data-theme="theme-modern"] .swatch-c{ background:#222; }
 
+    .theme-glass .theme-item[data-theme="theme-glass"] .swatch-a{ background:#60a5fa; }
+    .theme-glass .theme-item[data-theme="theme-glass"] .swatch-b{ background:#1a2233; }
+    .theme-glass .theme-item[data-theme="theme-glass"] .swatch-c{ background:#f2f7ff; }
 
-.list{ display:flex; flex-direction:column; gap:10px; }
-.card{ background:var(--card); border-radius:var(--radius); padding:14px; }
-.title{ font-weight:600; }
-.sub{ color:var(--muted); font-size:12px; }
+    .theme-dark .theme-item[data-theme="theme-dark"] .swatch-a{ background:#ff0066; }
+    .theme-dark .theme-item[data-theme="theme-dark"] .swatch-b{ background:#0f141c; }
+    .theme-dark .theme-item[data-theme="theme-dark"] .swatch-c{ background:#e5e7eb; }
 
+    .theme-light .theme-item[data-theme="theme-light"] .swatch-a{ background:#2563eb; }
+    .theme-light .theme-item[data-theme="theme-light"] .swatch-b{ background:#ffffff; }
+    .theme-light .theme-item[data-theme="theme-light"] .swatch-c{ background:#0b1220; }
 
-.messages{ display:flex; flex-direction:column; gap:6px; max-height:40vh; overflow:auto; background:#0f1723; padding:12px; border-radius:12px; }
-.bubble{ max-width:75%; padding:8px 10px; border-radius:12px; }
-.bubble.me{ background:var(--me); align-self:flex-end; color:#fff; }
-.bubble.them{ background:var(--them); align-self:flex-start; color:#fff; }
-.input-wrap{ display:flex; gap:8px; margin-top:8px; }
-.input-wrap input{ flex:1; }
+    .theme-colorful .theme-item[data-theme="theme-colorful"] .swatch-a{ background:#ffcc00; }
+    .theme-colorful .theme-item[data-theme="theme-colorful"] .swatch-b{ background:#1a1530; }
+    .theme-colorful .theme-item[data-theme="theme-colorful"] .swatch-c{ background:#f6f7fb; }
 
+    .theme-neon .theme-item[data-theme="theme-neon"] .swatch-a{ background:#00f0ff; }
+    .theme-neon .theme-item[data-theme="theme-neon"] .swatch-b{ background:#081018; }
+    .theme-neon .theme-item[data-theme="theme-neon"] .swatch-c{ background:#eaffff; }
 
-.search-head{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-.search-input{ flex:1; }
+    .theme-nature .theme-item[data-theme="theme-nature"] .swatch-a{ background:#2e8b57; }
+    .theme-nature .theme-item[data-theme="theme-nature"] .swatch-b{ background:#ffffff; }
+    .theme-nature .theme-item[data-theme="theme-nature"] .swatch-c{ background:#1b2d1d; }
 
+    .theme-retro .theme-item[data-theme="theme-retro"] .swatch-a{ background:#d35400; }
+    .theme-retro .theme-item[data-theme="theme-retro"] .swatch-b{ background:#fff2d5; }
+    .theme-retro .theme-item[data-theme="theme-retro"] .swatch-c{ background:#2e1f0f; }
 
-.toast{ position:fixed; left:50%; transform:translateX(-50%) translateY(10px); bottom:20px; background:#111a; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; transition:all .2s; backdrop-filter: blur(6px); }
-.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%) translateY(10px); bottom:20px; background:#111a; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; transition:all .2s; backdrop-filter: blur(6px); }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-
-@media (max-width:700px){
-.grid{ grid-template-columns:1fr; }
-#dock{ width:94%; }
-.auth-card{ padding:16px; }
-}
+    @media (max-width:700px){
+      .grid{ grid-template-columns:1fr; }
+      #dock{ width:94%; }
+      .auth-card{ padding:16px; }
+    }
   </style>
 </head>
 <body>
@@ -601,7 +669,7 @@ overflow:hidden; transition:height .25s ease, padding .25s ease; height: 40px; d
         <button id="btn-friends" class="secondary">Seznam prijateljev</button>
         <button id="btn-search" class="secondary">Iskanje prijateljev</button>
         <button id="btn-profile" class="secondary">Moj profil</button>
-        <button id="btn-themes" class="secondary">Tema (8)</button>
+        <button id="btn-themes" class="secondary">Tema</button>
         <button id="signout-btn" class="ghost" title="Odjava">⎋</button>
       </div>
       <div id="dock-panel">
